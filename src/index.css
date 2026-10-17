@@ -71,11 +71,99 @@
   background: #94A3B8;
 }
 
-/* Glassmorphism & soft card shadows */
-.soft-card-shadow {
-  box-shadow: 0 4px 20px -2px rgba(148, 163, 184, 0.15), 0 2px 6px -1px rgba(148, 163, 184, 0.08);
+/* Organized Modern Grid & Dot Matrix Backgrounds */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
 }
 
-.dark-card-shadow {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+.theme-dark .bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(38, 38, 43, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(38, 38, 43, 0.5) 1px, transparent 1px);
+}
+
+.bg-dot-matrix {
+  background-size: 24px 24px;
+  background-image: radial-gradient(rgba(203, 213, 225, 0.7) 1px, transparent 1px);
+}
+
+.theme-dark .bg-dot-matrix {
+  background-size: 24px 24px;
+  background-image: radial-gradient(rgba(45, 45, 52, 0.8) 1px, transparent 1px);
+}
+
+/* Soft Blue Grid for Auth Page */
+.bg-soft-blue-grid {
+  background-color: #0c1a2e;
+  background-image: 
+    linear-gradient(to right, rgba(56, 130, 246, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 130, 246, 0.12) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.theme-light .bg-soft-blue-grid {
+  background-color: #f0f6ff;
+  background-image: 
+    linear-gradient(to right, rgba(147, 197, 253, 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(147, 197, 253, 0.45) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ─── Landing Page Rich Background ─── */
+.landing-bg-light {
+  background-color: #F8FAFC;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(245, 158, 11, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 85% 40%, rgba(99, 102, 241, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 15% 70%, rgba(16, 185, 129, 0.04) 0%, transparent 60%),
+    linear-gradient(to right, rgba(203, 213, 225, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(203, 213, 225, 0.25) 1px, transparent 1px);
+  background-size: auto, auto, auto, 40px 40px, 40px 40px;
+}
+
+.landing-bg-dark {
+  background-color: #0B0B0D;
+  background-image:
+    radial-gradient(ellipse 80% 55% at 50% -5%, rgba(245, 158, 11, 0.12) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 45% at 85% 45%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 10% 75%, rgba(16, 185, 129, 0.06) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: auto, auto, auto, 40px 40px, 40px 40px;
+}
+
+/* Glow orbs decorative */
+.glow-amber {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.22) 0%, transparent 70%);
+}
+.glow-indigo {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+}
+.glow-emerald {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(100px);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.13) 0%, transparent 70%);
+}
+
+/* Hide scrollbar utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

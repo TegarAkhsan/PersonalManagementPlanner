@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   CheckCircle2,
   Calendar,
-  Sparkles,
   Flame,
   ArrowRight
 } from 'lucide-react';
@@ -12,8 +11,14 @@ export default function TodayView() {
   const { tasks, habits, events, updateTask, toggleHabitDay, setCurrentView, theme } = useStorage();
   const isLight = theme === 'light';
 
-  const todayStr = '2026-10-04';
-  const todayDayNum = 4;
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+  const todayDayNum = now.getDate();
+
+  const dayNamesIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const monthNamesIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+  const todayLabel = `${dayNamesIndo[now.getDay()]}, ${now.getDate()} ${monthNamesIndo[now.getMonth()]} ${now.getFullYear()}`;
 
   const todayTasks = tasks.filter((t) => t.dueDate === todayStr);
   const overdueTasks = tasks.filter((t) => t.dueDate && t.dueDate < todayStr && t.status !== 'done');
@@ -27,17 +32,17 @@ export default function TodayView() {
         <h2 className={`text-xl font-extrabold tracking-tight flex items-center gap-2 ${
           isLight ? 'text-slate-900' : 'text-white'
         }`}>
-          <span>TODAY'S FOCUS</span>
-          <span className={`text-xs px-2.5 py-0.5 rounded-full font-mono border ${
+          <span>FOKUS HARI INI</span>
+          <span className={`text-xs px-2.5 py-1 rounded font-mono border ${
             isLight
               ? 'bg-amber-100 text-amber-800 border-amber-300'
               : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
           }`}>
-            Sun, 4 Oct 2026
+            {todayLabel}
           </span>
         </h2>
         <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
-          High-priority view: scheduled tasks, events, and daily habits due today.
+          Ringkasan prioritas tinggi: tugas jatuh tempo hari ini, agenda rapat, dan kebiasaan harian.
         </p>
       </div>
 
@@ -53,23 +58,23 @@ export default function TodayView() {
             <h3 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
               isLight ? 'text-slate-700' : 'text-zinc-200'
             }`}>
-              <span className="w-2 h-2 rounded-full bg-pink-500"></span>
-              Scheduled Today ({todayTasks.length})
+              <span className="w-2 h-2 rounded-sm bg-rose-500"></span>
+              Tugas Hari Ini ({todayTasks.length})
             </h3>
             <button
               onClick={() => setCurrentView('tasks')}
-              className={`text-xs hover:underline flex items-center gap-1 ${
+              className={`text-xs hover:underline flex items-center gap-1 font-semibold ${
                 isLight ? 'text-amber-700' : 'text-amber-400'
               }`}
             >
-              All Tasks <ArrowRight size={12} />
+              Semua Tugas <ArrowRight size={12} />
             </button>
           </div>
 
           <div className="space-y-2.5">
             {todayTasks.length === 0 ? (
               <div className={`py-6 text-center text-xs ${isLight ? 'text-slate-400' : 'text-zinc-500'}`}>
-                No tasks scheduled specifically for today!
+                Tidak ada tugas berjadwal untuk hari ini!
               </div>
             ) : (
               todayTasks.map((t) => (
@@ -104,7 +109,7 @@ export default function TodayView() {
                     <span className={`text-[10px] font-mono mt-0.5 inline-block ${
                       isLight ? 'text-slate-400' : 'text-zinc-500'
                     }`}>
-                      Priority: {t.priority}
+                      Prioritas: {t.priority}
                     </span>
                   </div>
                 </div>
@@ -116,7 +121,7 @@ export default function TodayView() {
           {overdueTasks.length > 0 && (
             <div className={`pt-3 border-t ${isLight ? 'border-slate-100' : 'border-[#222228]'}`}>
               <p className="text-xs font-bold text-rose-600 dark:text-rose-400 mb-2">
-                ⚠️ Overdue Tasks ({overdueTasks.length})
+                Perlu Perhatian: Tugas Terlambat ({overdueTasks.length})
               </p>
               <div className="space-y-2">
                 {overdueTasks.map((ot) => (
@@ -143,16 +148,16 @@ export default function TodayView() {
             <h3 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
               isLight ? 'text-slate-700' : 'text-zinc-200'
             }`}>
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              Daily Habits Routine
+              <span className="w-2 h-2 rounded-sm bg-emerald-500"></span>
+              Target Rutinitas & Habit
             </h3>
             <button
               onClick={() => setCurrentView('habits')}
-              className={`text-xs hover:underline flex items-center gap-1 ${
+              className={`text-xs hover:underline flex items-center gap-1 font-semibold ${
                 isLight ? 'text-amber-700' : 'text-amber-400'
               }`}
             >
-              Heatmaps <ArrowRight size={12} />
+              Kalender Habit <ArrowRight size={12} />
             </button>
           </div>
 
@@ -175,7 +180,7 @@ export default function TodayView() {
                     <div>
                       <p className={`text-xs font-bold ${isLight ? 'text-slate-800' : 'text-zinc-200'}`}>{h.name}</p>
                       <p className="text-[10px] text-amber-500 font-mono flex items-center gap-1">
-                        <Flame size={10} className="fill-amber-500" /> {h.streak || 0} day streak
+                        <Flame size={10} className="fill-amber-500" /> {h.streak || 0} hari berturut-turut
                       </p>
                     </div>
                   </div>
@@ -193,7 +198,7 @@ export default function TodayView() {
                             : 'bg-[#222228] text-zinc-400 hover:bg-[#2b2b34] hover:text-white border-transparent'
                       }`}
                     >
-                      {isDone ? 'Done' : 'Check'}
+                      {isDone ? 'Selesai' : 'Check'}
                     </button>
                   ) : (
                     <span className="text-xs font-mono font-semibold text-cyan-600 dark:text-cyan-400">
@@ -216,18 +221,18 @@ export default function TodayView() {
             <h3 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
               isLight ? 'text-slate-700' : 'text-zinc-200'
             }`}>
-              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-              Events & Sessions
+              <span className="w-2 h-2 rounded-sm bg-amber-500"></span>
+              Jadwal & Agenda
             </h3>
             <span className={`text-xs font-mono ${isLight ? 'text-slate-400' : 'text-zinc-400'}`}>
-              {todayEvents.length} items
+              {todayEvents.length} agenda
             </span>
           </div>
 
           <div className="space-y-3">
             {todayEvents.length === 0 ? (
               <div className={`py-6 text-center text-xs ${isLight ? 'text-slate-400' : 'text-zinc-500'}`}>
-                No events scheduled for today. Relax and focus on deep work!
+                Tidak ada agenda terjadwal untuk hari ini. Waktunya deep work!
               </div>
             ) : (
               todayEvents.map((evt) => (
@@ -242,12 +247,12 @@ export default function TodayView() {
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
                     isLight ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                   }`}>
-                    {evt.category || 'Event'}
+                    {evt.category || 'Agenda'}
                   </span>
                   <h4 className={`text-xs font-bold mt-1.5 ${isLight ? 'text-slate-900' : 'text-white'}`}>{evt.title}</h4>
                   <div className={`mt-2 text-xs space-y-0.5 ${isLight ? 'text-slate-600' : 'text-zinc-400'}`}>
-                    <p>Time: {evt.startTime} - {evt.endTime}</p>
-                    <p>Location: {evt.location}</p>
+                    <p>Waktu: {evt.startTime} - {evt.endTime}</p>
+                    <p>Lokasi: {evt.location}</p>
                   </div>
                 </div>
               ))

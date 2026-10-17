@@ -11,9 +11,10 @@ import {
 import { useStorage } from '../context/StorageContext';
 
 export default function ProjectsView() {
-  const { projects, tasks, deleteProject, setCreateModalType, theme } = useStorage();
+  const { projects, tasks, deleteProject, setCreateModalType, theme, currentPlan, setCurrentView } = useStorage();
   const isLight = theme === 'light';
   const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id || null);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
 
   const activeProjects = projects.filter((p) => p.status !== 'archived');
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
@@ -22,8 +23,42 @@ export default function ProjectsView() {
   const completedCount = projectTasks.filter((t) => t.status === 'done').length;
   const progressPct = projectTasks.length > 0 ? Math.round((completedCount / projectTasks.length) * 100) : 0;
 
+  const handleCreateProjectClick = () => {
+    if (currentPlan === 'Starter' && activeProjects.length >= 2) {
+      setShowLimitWarning(true);
+      return;
+    }
+    setCreateModalType('project');
+  };
+
   return (
     <div className="space-y-6">
+      {/* Starter Limit Warning Alert */}
+      {showLimitWarning && (
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+          <div>
+            <h4 className="text-xs font-bold text-amber-500">Batas Maksimal Paket Starter Tercapai (2 Proyek)</h4>
+            <p className="text-[11px] text-slate-600 dark:text-zinc-400 mt-0.5">
+              Paket Starter dibatasi maksimal 2 proyek aktif. Upgrade ke paket Pro untuk membuat proyek tanpa batas dan akses cloud database.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentView('landing')}
+              className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs shadow-sm cursor-pointer"
+            >
+              Upgrade ke Pro
+            </button>
+            <button
+              onClick={() => setShowLimitWarning(false)}
+              className="px-2.5 py-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-white"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b ${
         isLight ? 'border-slate-200' : 'border-[#24242A]'
@@ -33,12 +68,12 @@ export default function ProjectsView() {
             isLight ? 'text-slate-900' : 'text-white'
           }`}>
             <span>PROJECTS</span>
-            <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
+            <span className={`text-xs px-2.5 py-1 rounded-md font-semibold border ${
               isLight
                 ? 'bg-amber-100 text-amber-800 border-amber-300'
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
             }`}>
-              Active Portfolios
+              {currentPlan === 'Starter' ? `${activeProjects.length}/2 Proyek (Starter)` : 'Active Portfolios'}
             </span>
           </h2>
           <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
@@ -47,11 +82,11 @@ export default function ProjectsView() {
         </div>
 
         <button
-          onClick={() => setCreateModalType('project')}
+          onClick={handleCreateProjectClick}
           className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-md transition-all active:scale-95 cursor-pointer"
         >
           <Plus size={16} />
-          <span>+ New Project</span>
+          <span>New Project</span>
         </button>
       </div>
 
@@ -145,7 +180,7 @@ export default function ProjectsView() {
               </p>
             </div>
             <div className="flex items-center gap-3 mt-3 sm:mt-0">
-              <span className={`text-xs px-3 py-1 rounded-full font-medium border ${
+              <span className={`text-xs px-3 py-1 rounded-md font-medium border ${
                 isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-[#1C1C22] text-zinc-300 border-[#2C2C34]'
               }`}>
                 {projectTasks.length} Associated Tasks

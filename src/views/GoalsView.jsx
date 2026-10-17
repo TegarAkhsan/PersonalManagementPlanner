@@ -21,13 +21,6 @@ export default function GoalsView() {
             isLight ? 'text-slate-900' : 'text-white'
           }`}>
             <span>GOALS & OKRs</span>
-            <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
-              isLight
-                ? 'bg-amber-100 text-amber-800 border-amber-300'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-            }`}>
-              Long-term Vision
-            </span>
           </h2>
           <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
             Connect high-level objectives with active projects and daily habits.
@@ -39,7 +32,7 @@ export default function GoalsView() {
           className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-md transition-all active:scale-95 cursor-pointer"
         >
           <Plus size={16} />
-          <span>+ New Goal</span>
+          <span>New Goal</span>
         </button>
       </div>
 

@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import CreateModal from './components/CreateModal';
 import CommandPalette from './components/CommandPalette';
+import TasksSection from './components/TasksSection';
 
 // Views
 import HomeView from './views/HomeView';
@@ -16,13 +17,21 @@ import NotesView from './views/NotesView';
 import AnalyticsView from './views/AnalyticsView';
 import ArchiveHabitsView from './views/ArchiveHabitsView';
 import SettingsView from './views/SettingsView';
-import TasksSection from './components/TasksSection';
+import LandingPageView from './views/LandingPageView';
+import PaymentView from './views/PaymentView';
+import AdminPanelView from './views/AdminPanelView';
+import AuthView from './views/AuthView';
 
 export default function App() {
-  const { currentView, theme } = useStorage();
+  const { currentView, setCurrentView, theme, isSidebarOpen, setIsSidebarOpen, user } = useStorage();
+  const isLight = theme === 'light';
 
   const renderActiveView = () => {
     switch (currentView) {
+      case 'landing':
+        return <LandingPageView />;
+      case 'auth':
+        return <AuthView />;
       case 'home':
         return <HomeView />;
       case 'today':
@@ -32,10 +41,16 @@ export default function App() {
       case 'tasks':
         return (
           <div className="space-y-6">
-            <div className="pb-4 border-b border-[#24242A]">
-              <h2 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            <div className={`pb-4 border-b ${isLight ? 'border-slate-200' : 'border-[#24242A]'}`}>
+              <h2 className={`text-xl font-extrabold tracking-tight flex items-center gap-2 ${
+                isLight ? 'text-slate-900' : 'text-white'
+              }`}>
                 <span>ALL TASKS</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                <span className={`text-xs px-2.5 py-1 rounded-md font-semibold border ${
+                  isLight
+                    ? 'bg-amber-100 text-amber-800 border-amber-300'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                }`}>
                   Global Task Manager
                 </span>
               </h2>
@@ -62,8 +77,184 @@ export default function App() {
     }
   };
 
+  // If in auth view, render full split-screen Sign In / Sign Up
+  if (currentView === 'auth') {
+    return <AuthView />;
+  }
+
+  // If in admin view, render dedicated Admin Panel
+  if (currentView === 'admin' || window.location.hash === '#admin') {
+    return <AdminPanelView />;
+  }
+
+  // If in payment view, provide full dedicated checkout page layout
+  if (currentView === 'payment') {
+    return (
+      <div className={`min-h-screen font-sans antialiased overflow-x-hidden transition-colors duration-200 ${
+        isLight ? 'theme-light bg-[#F8FAFC] text-slate-800' : 'theme-dark bg-[#0B0B0D] text-zinc-100'
+      }`}>
+        <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-4 sm:px-8 py-3.5 flex items-center justify-between ${
+          isLight ? 'bg-white/90 border-slate-200' : 'bg-[#101014]/90 border-[#24242A]'
+        }`}>
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setCurrentView('landing')}>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20 text-white font-black text-lg">
+              O
+            </div>
+            <span className="font-extrabold text-base tracking-tight">Orvian</span>
+            <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+              SECURE CHECKOUT
+            </span>
+          </div>
+
+          <button
+            onClick={() => setCurrentView('landing')}
+            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all ${
+              isLight ? 'hover:bg-slate-100 text-slate-600 border-slate-200' : 'hover:bg-[#202026] text-zinc-400 border-[#2B2B33]'
+            }`}
+          >
+            Batal & Kembali
+          </button>
+        </header>
+
+        <main className="min-h-[calc(100vh-60px)]">
+          <PaymentView />
+        </main>
+      </div>
+    );
+  }
+
+  // If in landing page view, provide a seamless top navigation bar
+  if (currentView === 'landing') {
+    return (
+      <div className={`min-h-screen font-sans antialiased overflow-x-hidden transition-colors duration-200 ${
+        isLight
+          ? 'theme-light bg-[#F8FAFC] text-slate-800'
+          : 'theme-dark bg-[#0B0B0D] text-zinc-100'
+      }`}>
+        {/* Landing Page Navbar Header */}
+        <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-4 sm:px-8 py-3.5 flex items-center justify-between ${
+          isLight ? 'bg-white/90 border-slate-200' : 'bg-[#101014]/90 border-[#24242A]'
+        }`}>
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setCurrentView('landing')}>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20 text-white font-black text-lg">
+              O
+            </div>
+            <div>
+              <span className="font-extrabold text-base tracking-tight block leading-none">Orvian</span>
+              <span className="text-[10px] text-amber-500 font-medium tracking-tight">One space. Every ambition.</span>
+            </div>
+          </div>
+
+          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold">
+            <a href="#fitur" className={`transition-colors ${isLight ? 'text-slate-600 hover:text-amber-600' : 'text-zinc-400 hover:text-amber-400'}`}>
+              Fitur Sistem
+            </a>
+            <a href="#pricing" className={`transition-colors ${isLight ? 'text-slate-600 hover:text-amber-600' : 'text-zinc-400 hover:text-amber-400'}`}>
+              Paket & Harga
+            </a>
+            <a href="#faq" className={`transition-colors ${isLight ? 'text-slate-600 hover:text-amber-600' : 'text-zinc-400 hover:text-amber-400'}`}>
+              FAQ
+            </a>
+          </nav>
+
+          <div className="flex items-center gap-2.5">
+            {!user ? (
+              <button
+                onClick={() => setCurrentView('auth')}
+                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-md shadow-amber-500/20 transition-all active:scale-95 cursor-pointer"
+              >
+                Sign In / Sign Up
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentView('home')}
+                  className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-md shadow-amber-500/20 transition-all active:scale-95 cursor-pointer"
+                >
+                  Buka Dashboard
+                </button>
+              </div>
+            )}
+          </div>
+        </header>
+
+        <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+          <LandingPageView />
+        </main>
+
+        {/* Landing Page Professional Footer */}
+        <footer className={`border-t transition-colors ${
+          isLight ? 'bg-white border-slate-200 text-slate-600' : 'bg-[#101014] border-[#222228] text-zinc-400'
+        }`}>
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-12 grid grid-cols-1 md:grid-cols-4 gap-8 text-xs">
+            {/* Col 1: Brand & Bio */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold text-sm">
+                  O
+                </div>
+                <div>
+                  <span className={`font-extrabold text-sm tracking-tight block ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                    Orvian
+                  </span>
+                  <span className="text-[10px] text-amber-500 font-medium">One space. Every ambition.</span>
+                </div>
+              </div>
+              <p className="leading-relaxed text-[11px] text-slate-500 dark:text-zinc-500">
+                Workspace terpadu modern untuk manajemen proyek, rutinitas habit, kalender sinkron, target OKR, dan sinkronisasi cloud real-time.
+              </p>
+            </div>
+
+            {/* Col 2: Navigasi Cepat */}
+            <div className="space-y-2.5">
+              <h4 className={`font-bold uppercase tracking-wider text-[11px] ${isLight ? 'text-slate-900' : 'text-zinc-200'}`}>
+                Navigasi
+              </h4>
+              <ul className="space-y-1.5 text-[11px]">
+                <li><button onClick={() => setCurrentView('auth')} className="text-amber-500 font-bold hover:underline">Mulai Gratis (Sign Up)</button></li>
+                <li><button onClick={() => setCurrentView('home')} className="hover:text-amber-500 transition-colors">Dashboard Ringkasan</button></li>
+                <li><button onClick={() => setCurrentView('tasks')} className="hover:text-amber-500 transition-colors">Kanban Board & Tugas</button></li>
+                <li><button onClick={() => setCurrentView('calendar')} className="hover:text-amber-500 transition-colors">Kalender & Google Sync</button></li>
+                <li><button onClick={() => setCurrentView('notes')} className="hover:text-amber-500 transition-colors">Catatan & Ekspor Dokumen</button></li>
+              </ul>
+            </div>
+
+            {/* Col 3: Integrasi Eksternal */}
+            <div className="space-y-2.5">
+              <h4 className={`font-bold uppercase tracking-wider text-[11px] ${isLight ? 'text-slate-900' : 'text-zinc-200'}`}>
+                Integrasi Ekosistem
+              </h4>
+              <ul className="space-y-1.5 text-[11px]">
+                <li className="flex items-center gap-1.5"><span>• Cloud Database Synchronization</span></li>
+                <li className="flex items-center gap-1.5"><span>• Google Calendar Synchronization</span></li>
+                <li className="flex items-center gap-1.5"><span>• Ekspor Dokumen Resmi (.docx & PDF)</span></li>
+                <li className="flex items-center gap-1.5"><span>• Netlify Hosting & CI/CD Deployment</span></li>
+              </ul>
+            </div>
+
+            {/* Col 4: Keamanan & Status */}
+            <div className="space-y-2.5">
+              <h4 className={`font-bold uppercase tracking-wider text-[11px] ${isLight ? 'text-slate-900' : 'text-zinc-200'}`}>
+                Keamanan & Garansi
+              </h4>
+              <p className="text-[11px] leading-relaxed text-slate-500 dark:text-zinc-500">
+                Data terenkripsi end-to-end dengan Row Level Security (RLS) PostgreSQL. Fitur backup & ekspor JSON tersedia kapan pun.
+              </p>
+            </div>
+          </div>
+
+          <div className={`border-t py-4 px-4 sm:px-8 text-center text-[11px] ${
+            isLight ? 'border-slate-100 text-slate-500' : 'border-[#1E1E23] text-zinc-500'
+          }`}>
+            © {new Date().getFullYear()} Orvian — One space. Every ambition. Hak Cipta Dilindungi.
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
   return (
-    <div className={`flex min-h-screen font-sans antialiased overflow-x-hidden transition-colors duration-200 ${
+    <div className={`flex h-screen overflow-hidden font-sans antialiased transition-colors duration-200 ${
       theme === 'light'
         ? 'theme-light bg-[#F8FAFC] text-slate-800'
         : 'theme-dark bg-[#0B0B0D] text-zinc-100'
@@ -71,13 +262,21 @@ export default function App() {
       {/* Collapsible Sidebar */}
       <Sidebar />
 
+      {/* Mobile Sidebar Backdrop */}
+      {isSidebarOpen && (
+        <div
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-black/50 z-35 lg:hidden backdrop-blur-xs transition-opacity"
+        />
+      )}
+
       {/* Main Workspace Frame */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Top Navbar with live clock, Ctrl+K search, layout toggles */}
         <TopBar />
 
-        {/* Dynamic Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
+        {/* Dynamic Page Content with independent scrollbar */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
           {renderActiveView()}
         </main>
       </div>

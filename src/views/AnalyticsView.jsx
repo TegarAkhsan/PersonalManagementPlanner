@@ -37,7 +37,7 @@ export default function AnalyticsView() {
           isLight ? 'text-slate-900' : 'text-white'
         }`}>
           <span>ANALYTICS & INSIGHTS</span>
-          <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
+          <span className={`text-xs px-2.5 py-1 rounded-md font-semibold border ${
             isLight
               ? 'bg-amber-100 text-amber-800 border-amber-300'
               : 'bg-amber-500/10 text-amber-400 border-amber-500/30'

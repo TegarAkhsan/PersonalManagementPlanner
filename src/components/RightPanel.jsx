@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import {
   Calendar as CalIcon,
   ChevronRight,
-  Sparkles,
-  MapPin,
   Clock,
   ChevronLeft
 } from 'lucide-react';
@@ -13,12 +11,13 @@ export default function RightPanel() {
   const { tasks, events, projects, theme } = useStorage();
   const isLight = theme === 'light';
   
-  // Current Calendar state (October 2026 based on screenshot/demo)
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 9, 1)); // Oct 2026
+  // Real calendar state
+  const now = new Date();
+  const [currentDate, setCurrentDate] = useState(new Date(now.getFullYear(), now.getMonth(), 1));
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
 
   const year = currentDate.getFullYear();
@@ -33,6 +32,7 @@ export default function RightPanel() {
   };
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // Monday as start day (0)
   const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; 
 
   const formatDateString = (d) => {
@@ -67,7 +67,7 @@ export default function RightPanel() {
         date: e.date,
         type: 'event',
         time: e.startTime ? `${e.startTime} - ${e.endTime}` : null,
-        projectName: proj ? proj.name : 'Event',
+        projectName: proj ? proj.name : 'Agenda',
         projectColor: '#F59E0B',
         location: e.location
       });
@@ -75,9 +75,6 @@ export default function RightPanel() {
   });
 
   upcomingItems.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  const todayDateNumber = 4;
-  const isDemoMonth = year === 2026 && month === 9;
 
   const getDayDots = (dayNum) => {
     const dStr = formatDateString(dayNum);
@@ -87,11 +84,11 @@ export default function RightPanel() {
   };
 
   const getRelativeDateLabel = (dateStr) => {
-    if (dateStr === '2026-10-04') return 'Today';
-    if (dateStr === '2026-10-05') return 'Tomorrow';
+    const todayFormatted = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+    if (dateStr === todayFormatted) return 'Hari Ini';
     try {
       const d = new Date(dateStr);
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return d.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' });
     } catch {
       return dateStr;
     }
@@ -113,6 +110,7 @@ export default function RightPanel() {
           <div className="flex items-center gap-1">
             <button
               onClick={handlePrevMonth}
+              aria-label="Previous month"
               className={`p-1 rounded transition-colors ${
                 isLight ? 'hover:bg-slate-100 text-slate-500' : 'hover:bg-[#222227] text-zinc-400 hover:text-white'
               }`}
@@ -121,6 +119,7 @@ export default function RightPanel() {
             </button>
             <button
               onClick={handleNextMonth}
+              aria-label="Next month"
               className={`p-1 rounded transition-colors ${
                 isLight ? 'hover:bg-slate-100 text-slate-500' : 'hover:bg-[#222227] text-zinc-400 hover:text-white'
               }`}
@@ -130,9 +129,9 @@ export default function RightPanel() {
           </div>
         </div>
 
-        {/* Day Header: M T W T F S S */}
+        {/* Day Header: Sen Sel Rab Kam Jum Sab Min */}
         <div className="grid grid-cols-7 text-center mb-2">
-          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+          {['Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb', 'Mg'].map((d, i) => (
             <span key={i} className={`text-[11px] font-semibold ${isLight ? 'text-slate-400' : 'text-zinc-500'}`}>
               {d}
             </span>
@@ -147,7 +146,10 @@ export default function RightPanel() {
 
           {Array.from({ length: daysInMonth }).map((_, idx) => {
             const dayNum = idx + 1;
-            const isToday = isDemoMonth && dayNum === todayDateNumber;
+            const isToday = 
+              year === now.getFullYear() && 
+              month === now.getMonth() && 
+              dayNum === now.getDate();
             const { hasEvent, hasTask } = getDayDots(dayNum);
 
             return (
@@ -156,7 +158,7 @@ export default function RightPanel() {
                 className="h-8 flex flex-col items-center justify-center relative cursor-pointer group"
               >
                 <div
-                  className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium transition-all ${
+                  className={`w-7 h-7 flex items-center justify-center rounded-md text-xs font-medium transition-all ${
                     isToday
                       ? 'bg-amber-500 text-white font-bold shadow-md shadow-amber-500/25'
                       : isLight
@@ -169,10 +171,10 @@ export default function RightPanel() {
                 {/* Dots indicator */}
                 <div className="flex items-center justify-center gap-0.5 mt-0.5 absolute bottom-0.5">
                   {hasEvent && (
-                    <span className="w-1 h-1 rounded-full bg-amber-500" />
+                    <span className="w-1 h-1 rounded-sm bg-amber-500" />
                   )}
                   {hasTask && (
-                    <span className="w-1 h-1 rounded-full bg-pink-500" />
+                    <span className="w-1 h-1 rounded-sm bg-rose-500" />
                   )}
                 </div>
               </div>
@@ -191,19 +193,19 @@ export default function RightPanel() {
           isLight ? 'border-slate-100' : 'border-[#24242A]'
         }`}>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <span className="w-2 h-2 rounded-sm bg-amber-500"></span>
             <h4 className={`text-xs font-bold tracking-wider uppercase ${isLight ? 'text-slate-700' : 'text-zinc-400'}`}>
-              Upcoming Tasks & Events
+              Agenda Mendatang
             </h4>
           </div>
           <span className={`text-[11px] font-mono ${isLight ? 'text-slate-400' : 'text-zinc-500'}`}>
-            {upcomingItems.length} items
+            {upcomingItems.length} item
           </span>
         </div>
 
         {upcomingItems.length === 0 ? (
           <div className={`py-8 text-center text-xs ${isLight ? 'text-slate-400' : 'text-zinc-500'}`}>
-            No upcoming tasks or events.
+            Tidak ada agenda atau tugas mendatang.
           </div>
         ) : (
           <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
@@ -218,9 +220,9 @@ export default function RightPanel() {
               >
                 <div className="flex items-start gap-2.5">
                   <span
-                    className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+                    className="w-2 h-2 rounded-sm mt-1.5 flex-shrink-0"
                     style={{
-                      backgroundColor: item.type === 'event' ? '#F59E0B' : '#EC4899'
+                      backgroundColor: item.type === 'event' ? '#F59E0B' : '#F43F5E'
                     }}
                   />
 
@@ -250,7 +252,7 @@ export default function RightPanel() {
                             ? 'bg-amber-100 text-amber-800 border-amber-200'
                             : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
                         }`}>
-                          Event
+                          Agenda
                         </span>
                       )}
                       {item.time && (

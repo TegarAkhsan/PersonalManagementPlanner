@@ -8,7 +8,7 @@ import {
   ChevronRight,
   Archive,
   Trash2,
-  Sparkles
+  Repeat
 } from 'lucide-react';
 import { useStorage } from '../context/StorageContext';
 
@@ -51,7 +51,7 @@ export default function HabitsView() {
             isLight ? 'text-slate-900' : 'text-white'
           }`}>
             <span>HABITS & EVENTS</span>
-            <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
+            <span className={`text-xs px-2.5 py-1 rounded-md font-semibold border ${
               isLight
                 ? 'bg-amber-100 text-amber-800 border-amber-300'
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
@@ -96,7 +96,7 @@ export default function HabitsView() {
             className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-md transition-all active:scale-95 cursor-pointer"
           >
             <Plus size={15} />
-            <span>{activeTab === 'habits' ? '+ New Habit' : '+ New Event'}</span>
+            <span>{activeTab === 'habits' ? 'Habit Baru' : 'Agenda Baru'}</span>
           </button>
         </div>
       </div>

@@ -6,7 +6,11 @@ import {
   Maximize2,
   Minimize2,
   Sun,
-  Moon
+  Moon,
+  Menu,
+  Sparkles,
+  ShieldCheck,
+  LogOut
 } from 'lucide-react';
 import { useStorage } from '../context/StorageContext';
 
@@ -15,8 +19,14 @@ export default function TopBar() {
     taskViewMode,
     setTaskViewMode,
     setIsCommandPaletteOpen,
+    isSidebarOpen,
+    setIsSidebarOpen,
     theme,
-    toggleTheme
+    toggleTheme,
+    currentPlan,
+    setCurrentView,
+    user,
+    logoutUser
   } = useStorage();
 
   const [currentTime, setCurrentTime] = useState('');
@@ -57,8 +67,20 @@ export default function TopBar() {
         ? 'border-slate-200 bg-white/80 backdrop-blur-md'
         : 'border-[#26262B] bg-[#0E0E11]/90 backdrop-blur-md'
     }`}>
-      {/* Global Command Search Bar */}
-      <div className="flex items-center gap-3 w-full max-w-md">
+      {/* Left: Mobile hamburger menu toggle & Global Command Search Bar */}
+      <div className="flex items-center gap-2 sm:gap-3 w-full max-w-md">
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className={`lg:hidden p-2 rounded-lg border transition-colors cursor-pointer ${
+            isLight
+              ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+              : 'bg-[#18181C] border-[#2B2B32] text-zinc-300 hover:bg-[#222228]'
+          }`}
+          title="Toggle Navigation Menu"
+        >
+          <Menu size={18} />
+        </button>
+
         <div
           onClick={() => setIsCommandPaletteOpen(true)}
           className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg border cursor-pointer transition-all shadow-inner group ${
@@ -85,6 +107,24 @@ export default function TopBar() {
 
       {/* Right Tools: Theme Toggle, Live Clock & Layout Controls */}
       <div className="flex items-center gap-3 sm:gap-4">
+        {/* Plan / Role Indicator Badge */}
+        <button
+          onClick={() => setCurrentView('landing')}
+          title={`Paket Aktif: ${currentPlan}. Klik untuk melihat fitur.`}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+            currentPlan === 'Team'
+              ? 'bg-gradient-to-r from-purple-500/15 to-indigo-500/15 border-purple-500/30 text-purple-600 dark:text-purple-300'
+              : currentPlan === 'Pro'
+                ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/15 border-amber-500/30 text-amber-600 dark:text-amber-300'
+                : isLight
+                  ? 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                  : 'bg-[#18181C] border-[#28282F] text-zinc-300 hover:bg-[#222228]'
+          }`}
+        >
+          <Sparkles size={13} className={currentPlan === 'Starter' ? 'text-slate-400' : 'text-amber-500'} />
+          <span className="uppercase tracking-wider text-[10px] font-black">{currentPlan} PLAN</span>
+        </button>
+
         {/* Soft Light / Dark Theme Switcher Button */}
         <button
           onClick={toggleTheme}
@@ -149,14 +189,33 @@ export default function TopBar() {
         {/* Fullscreen / Focus Mode */}
         <button
           onClick={toggleFullscreen}
-          title={isFullscreen ? 'Exit focus mode' : 'Focus mode'}
-          className={`p-2 rounded-lg border transition-colors ${
+          title={isFullscreen ? 'Keluar Mode Fokus' : 'Mode Fokus'}
+          className={`p-2 rounded-lg border transition-colors cursor-pointer ${
             isLight
               ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
               : 'bg-[#18181C] border-[#28282F] text-zinc-400 hover:text-zinc-200 hover:bg-[#202026]'
           }`}
         >
           {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+        </button>
+
+        {/* User Log Out Quick Action Button */}
+        <button
+          onClick={async () => {
+            if (window.confirm('Yakin ingin keluar dari akun Anda?')) {
+              await logoutUser();
+              setCurrentView('landing');
+            }
+          }}
+          title="Keluar dari Akun (Log Out)"
+          className={`p-2 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+            isLight
+              ? 'bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 border-slate-200 hover:border-rose-200'
+              : 'bg-[#18181C] hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 border-[#28282F] hover:border-rose-500/25'
+          }`}
+        >
+          <LogOut size={16} />
+          <span className="hidden xl:inline text-xs font-semibold">Keluar</span>
         </button>
       </div>
     </header>

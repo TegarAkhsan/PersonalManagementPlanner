@@ -66,17 +66,24 @@ export default function TasksSection() {
 
   const columns = [
     {
+      id: 'ready_to_start',
+      title: 'Ready To Start',
+      color: isLight ? 'border-sky-200 text-sky-700 bg-sky-50' : 'border-sky-500/30 text-sky-400 bg-sky-500/10',
+      icon: Circle,
+      status: 'ready_to_start'
+    },
+    {
       id: 'in_progress',
       title: 'In Progress',
       color: isLight ? 'border-blue-200 text-blue-600 bg-blue-50' : 'border-blue-500/30 text-blue-400 bg-blue-500/10',
-      icon: Circle,
+      icon: Clock,
       status: 'in_progress'
     },
     {
       id: 'review',
       title: 'Review',
       color: isLight ? 'border-amber-200 text-amber-700 bg-amber-50' : 'border-amber-500/30 text-amber-400 bg-amber-500/10',
-      icon: Clock,
+      icon: AlertCircle,
       status: 'review'
     },
     {
@@ -156,7 +163,7 @@ export default function TasksSection() {
           <h3 className={`text-xs font-bold tracking-wider uppercase ${isLight ? 'text-slate-700' : 'text-zinc-400'}`}>
             TASKS
           </h3>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${
+          <span className={`text-xs px-2 py-0.5 rounded-md font-semibold border ${
             isLight
               ? 'bg-slate-100 text-slate-600 border-slate-200'
               : 'bg-[#202026] text-zinc-400 border-[#2E2E36]'
@@ -202,7 +209,7 @@ export default function TasksSection() {
         <>
           {/* Kanban Board View */}
           {taskViewMode === 'board' ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 pt-1">
               {columns.map((col) => {
                 const colTasks = filteredTasks.filter((t) => t.status === col.status);
                 const Icon = col.icon;
@@ -229,7 +236,7 @@ export default function TasksSection() {
                         <h4 className={`text-xs font-bold ${isLight ? 'text-slate-800' : 'text-zinc-200'}`}>
                           {col.title}
                         </h4>
-                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${
                           isLight
                             ? 'bg-white text-slate-600 border-slate-200'
                             : 'bg-[#1A1A20] text-zinc-400 border-[#272730]'

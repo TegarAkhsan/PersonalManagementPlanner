@@ -19,7 +19,7 @@ export default function ArchiveHabitsView() {
           isLight ? 'text-slate-900' : 'text-white'
         }`}>
           <span>ARCHIVED HABITS</span>
-          <span className={`text-xs px-2.5 py-0.5 rounded-full border ${
+          <span className={`text-xs px-2.5 py-1 rounded-md border ${
             isLight
               ? 'bg-slate-100 text-slate-700 border-slate-300'
               : 'bg-zinc-800 text-zinc-300 border-zinc-700'

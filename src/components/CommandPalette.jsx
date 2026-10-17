@@ -3,7 +3,7 @@ import {
   Search,
   FolderGit2,
   CheckSquare,
-  Sparkles,
+  Repeat,
   Calendar,
   FileText,
   Target,

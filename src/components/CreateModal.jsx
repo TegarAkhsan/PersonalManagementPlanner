@@ -112,6 +112,7 @@ function CreateTaskForm({ onClose, isLight }) {
             onChange={(e) => setStatus(e.target.value)}
             className={inputClass}
           >
+            <option value="ready_to_start">Ready To Start</option>
             <option value="in_progress">In Progress</option>
             <option value="review">Review</option>
             <option value="done">Done</option>
