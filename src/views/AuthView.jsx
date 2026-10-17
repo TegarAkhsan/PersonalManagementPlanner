@@ -162,14 +162,6 @@ export default function AuthView() {
             <ArrowLeft size={14} />
             Kembali
           </button>
-
-          {/* Logo mark */}
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20">
-              <span className="text-white font-black text-xs">O</span>
-            </div>
-            <span className={`text-sm font-bold ${isLight ? 'text-slate-800' : 'text-white'}`}>Orvian</span>
-          </div>
         </div>
 
         {/* Form Content */}
@@ -177,9 +169,6 @@ export default function AuthView() {
 
           {/* Heading */}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20 mb-4">
-              ✦ Paket Starter — Gratis Selamanya
-            </div>
             <h1 className={`text-2xl sm:text-3xl font-black tracking-tight leading-tight ${
               isLight ? 'text-slate-900' : 'text-white'
             }`}>
@@ -340,11 +329,6 @@ export default function AuthView() {
         <div className="relative z-10 flex flex-col justify-center w-full p-12 lg:p-16 max-w-lg mx-auto">
           {/* Center: Headline & Value Proposition */}
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 w-fit">
-              <span>✦</span>
-              <span>All-in-One Project Workspace</span>
-            </div>
-
             <h2 className={`text-3xl lg:text-4xl xl:text-5xl font-black leading-tight tracking-tight ${
               isLight ? 'text-slate-900' : 'text-white'
             }`}>

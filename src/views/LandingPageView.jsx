@@ -603,14 +603,14 @@ export default function LandingPageView() {
                 <div className="pt-6 mt-6 border-t border-slate-100 dark:border-[#222228]">
                   <button
                     onClick={() => handleSelectPlan(p)}
-                    className={`w-full py-2.5 px-4 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`w-full py-2.5 px-4 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
                       isSelected
                         ? 'bg-emerald-600 text-white shadow-sm'
                         : p.popular
-                          ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white shadow-md shadow-amber-500/20 active:scale-98'
+                          ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-emerald-500 hover:to-emerald-600 hover:shadow-emerald-500/25 text-white shadow-md shadow-amber-500/20 active:scale-98'
                           : isLight
-                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300'
-                            : 'bg-[#202026] hover:bg-[#282832] text-zinc-100 border border-[#2F2F38]'
+                            ? 'bg-slate-100 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 text-slate-800 border border-slate-300 shadow-2xs hover:shadow-emerald-500/20'
+                            : 'bg-[#202026] hover:bg-emerald-600 hover:text-white hover:border-emerald-600 text-zinc-100 border border-[#2F2F38] shadow-2xs hover:shadow-emerald-500/20'
                     }`}
                   >
                     {isSelected ? 'Paket Aktif Saat Ini' : p.ctaText}
