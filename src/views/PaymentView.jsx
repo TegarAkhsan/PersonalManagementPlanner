@@ -17,10 +17,14 @@ import {
   Tag,
   Download,
   FileText,
-  Printer
+  Printer,
+  RefreshCw,
+  AlertCircle,
+  ExternalLink,
+  X
 } from 'lucide-react';
 import { useStorage } from '../context/StorageContext';
-import { createOrder, checkCustomerAccess } from '../lib/orderService';
+import { createOrder, checkCustomerAccess, getLocalOrders } from '../lib/orderService';
 import { downloadInvoice } from '../lib/invoiceGenerator';
 import { fetchAdminSettings, getLocalSettings } from '../lib/invoiceSettingsService';
 
@@ -28,19 +32,25 @@ export default function PaymentView() {
   const { checkoutData, changePlan, theme, setCurrentView } = useStorage();
   const isLight = theme === 'light';
 
-  // Customer Form Data
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    referral: ''
+  // Persistent Checkout Session State (survives browser refresh)
+  const [formData, setFormData] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('orvian_payment_form');
+      return saved ? JSON.parse(saved) : { name: '', email: '', phone: '', referral: '' };
+    } catch (e) {
+      return { name: '', email: '', phone: '', referral: '' };
+    }
   });
   const [errors, setErrors] = useState({});
 
   // Payment State
-  const [paymentMethod, setPaymentMethod] = useState('qris'); // 'qris' | 'bank_transfer' | 'credit_card'
+  const [paymentMethod, setPaymentMethod] = useState(() => {
+    return sessionStorage.getItem('orvian_payment_method') || 'qris';
+  });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(() => {
+    return sessionStorage.getItem('orvian_payment_success') === 'true';
+  });
   const [copiedText, setCopiedText] = useState(null);
   const [adminSettings, setAdminSettings] = useState(getLocalSettings());
 
@@ -63,14 +73,50 @@ export default function PaymentView() {
   const discountAmount = isReferralValid ? Math.round(subtotal * 0.1) : 0;
   const totalAmount = subtotal - discountAmount;
 
-  const orderId = `INV-PF-${Math.floor(100000 + Math.random() * 900000)}`;
+  // Generated unique order ID: Format INV-DD-MM-YYYY-XXX (persisted in session)
+  const [orderId] = useState(() => {
+    const savedOrderId = sessionStorage.getItem('orvian_current_order_id');
+    if (savedOrderId) return savedOrderId;
 
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yyyy = now.getFullYear();
+    const datePrefix = `${dd}-${mm}-${yyyy}`;
+    
+    // Count existing orders today to determine sequence
+    const localOrders = getLocalOrders();
+    const todayOrdersCount = localOrders.filter(o => o.orderId && o.orderId.includes(datePrefix)).length;
+    
+    // Daily sequence key for fallback counter in session
+    const storageKey = `orvian_daily_seq_${datePrefix}`;
+    let dailySeq = parseInt(sessionStorage.getItem(storageKey) || '0', 10);
+    if (!dailySeq) {
+      dailySeq = todayOrdersCount + 1;
+      sessionStorage.setItem(storageKey, String(dailySeq));
+    }
+    const seqStr = String(dailySeq).padStart(3, '0');
+    const newOrderId = `INV-${datePrefix}-${seqStr}`;
+    sessionStorage.setItem('orvian_current_order_id', newOrderId);
+    return newOrderId;
+  });
+
+  // Keep form data and method synced to session storage
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      sessionStorage.setItem('orvian_payment_form', JSON.stringify(updated));
+      return updated;
+    });
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+  };
+
+  const handleSelectPaymentMethod = (method) => {
+    setPaymentMethod(method);
+    sessionStorage.setItem('orvian_payment_method', method);
   };
 
   const handleCopy = (text, label) => {
@@ -87,15 +133,23 @@ export default function PaymentView() {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errs.email = 'Format email tidak valid';
     }
+    if (!termsAccepted) {
+      errs.terms = 'Anda wajib menyetujui Syarat dan Ketentuan layanan Orvian sebelum melanjutkan pembayaran';
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const [waConfirmed, setWaConfirmed] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+
+  const [waConfirmed, setWaConfirmed] = useState(() => {
+    return sessionStorage.getItem('orvian_wa_confirmed') === 'true';
+  });
 
   const getWhatsAppUrl = () => {
     const phoneTarget = '6285820004069';
-    const textMsg = `Halo Admin ProjectFlow, saya telah melakukan pembayaran:\n\n` +
+    const textMsg = `Halo Admin Orvian, saya telah melakukan pembayaran:\n\n` +
       `*No. Invoice:* ${orderId}\n` +
       `*Nama:* ${formData.name}\n` +
       `*Email:* ${formData.email}\n` +
@@ -107,13 +161,50 @@ export default function PaymentView() {
     return `https://wa.me/${phoneTarget}?text=${encodeURIComponent(textMsg)}`;
   };
 
-  const [activationToken, setActivationToken] = useState('');
-  const [tokenError, setTokenError] = useState('');
-  const [isActivating, setIsActivating] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    return sessionStorage.getItem('orvian_payment_unlocked') === 'true';
+  });
+  const [orderStatus, setOrderStatus] = useState('pending'); // 'pending' | 'confirmed'
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [statusFeedback, setStatusFeedback] = useState(null);
 
-  // Generated unique order verification pin for email confirmation (e.g., PF-939281)
-  const verificationPin = orderId.replace('INV-', '');
+  // Status checker function: checks order status in Supabase/Local Database
+  const checkConfirmationStatus = async (showFeedback = true) => {
+    setIsCheckingStatus(true);
+    try {
+      const order = await checkCustomerAccess(orderId);
+      if (order && order.status === 'confirmed') {
+        setOrderStatus('confirmed');
+        setIsUnlocked(true);
+        sessionStorage.setItem('orvian_payment_unlocked', 'true');
+        changePlan(order.plan || planId);
+        if (showFeedback) {
+          setStatusFeedback({ type: 'success', message: 'Hore! Pembayaran Anda telah terkonfirmasi oleh Admin. Hak akses paket telah aktif.' });
+        }
+      } else {
+        setOrderStatus('pending');
+        if (showFeedback) {
+          setStatusFeedback({ type: 'pending', message: 'Status pembayaran masih menunggu konfirmasi dari Admin. Silakan konfirmasi via WhatsApp atau cek kembali beberapa saat lagi.' });
+        }
+      }
+    } catch (err) {
+      if (showFeedback) {
+        setStatusFeedback({ type: 'error', message: 'Gagal memeriksa status. Silakan coba kembali.' });
+      }
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
+
+  // Poll status periodically every 10 seconds if isSuccess screen is active and not yet confirmed
+  React.useEffect(() => {
+    if (!isSuccess || isUnlocked) return;
+    checkConfirmationStatus(false);
+    const interval = setInterval(() => {
+      checkConfirmationStatus(false);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [isSuccess, isUnlocked, orderId]);
 
   const handleSubmitPayment = async (e) => {
     e.preventDefault();
@@ -141,65 +232,29 @@ export default function PaymentView() {
 
     setTimeout(() => {
       setIsProcessing(false);
-      // Payment recorded in Supabase, awaits admin confirmation / email token
+      // Payment recorded in Supabase, awaits admin confirmation
       setIsSuccess(true);
+      sessionStorage.setItem('orvian_payment_success', 'true');
     }, 1200);
-  };
-
-  const handleActivateByToken = async (e) => {
-    e.preventDefault();
-    if (!activationToken.trim()) {
-      setTokenError('Masukkan kode aktivasi / nomor invoice dari email Anda');
-      return;
-    }
-    const cleanToken = activationToken.trim().toUpperCase();
-
-    setIsActivating(true);
-    setTokenError('');
-
-    try {
-      // Check customer access in Supabase database
-      const verifiedOrder = await checkCustomerAccess(cleanToken);
-
-      if (
-        verifiedOrder &&
-        (verifiedOrder.status === 'confirmed' || cleanToken === orderId || cleanToken === verificationPin)
-      ) {
-        setIsUnlocked(true);
-        changePlan(verifiedOrder.plan || planId);
-        setTimeout(() => {
-          setIsActivating(false);
-          setCurrentView('home');
-        }, 1000);
-        return;
-      }
-
-      if (cleanToken === orderId || cleanToken === verificationPin || cleanToken === 'AKTIF' || cleanToken === 'PROJECTFLOW') {
-        setIsUnlocked(true);
-        changePlan(planId);
-        setTimeout(() => {
-          setIsActivating(false);
-          setCurrentView('home');
-        }, 1000);
-        return;
-      }
-
-      setIsActivating(false);
-      setTokenError(`Kode "${cleanToken}" belum dikonfirmasi oleh Admin di database. Silakan konfirmasi via WhatsApp atau tunggu email aktivasi.`);
-    } catch (err) {
-      setIsActivating(false);
-      setTokenError('Gagal memverifikasi ke database. Coba lagi atau hubungi WhatsApp Admin.');
-    }
   };
 
   const handleGoToDashboard = () => {
     if (!waConfirmed && !isUnlocked) {
-      alert('Mohon konfirmasi pembayaran terlebih dahulu ke WhatsApp (0858-2000-4069) atau masukkan kode aktivasi invoice email untuk membuka akses dashboard.');
+      alert('Mohon konfirmasi pembayaran terlebih dahulu ke WhatsApp (0858-2000-4069) atau tunggu konfirmasi dari Admin untuk membuka akses dashboard.');
       return;
     }
     // Activate Role Plan and grant workspace RBAC access
     changePlan(planId);
     setCurrentView('home');
+  };
+
+  const handleCancelAndReset = () => {
+    sessionStorage.removeItem('orvian_payment_success');
+    sessionStorage.removeItem('orvian_current_order_id');
+    sessionStorage.removeItem('orvian_payment_form');
+    sessionStorage.removeItem('orvian_wa_confirmed');
+    sessionStorage.removeItem('orvian_payment_unlocked');
+    setCurrentView('landing');
   };
 
   if (isSuccess) {
@@ -220,9 +275,80 @@ export default function PaymentView() {
               Pembayaran Berhasil!
             </h2>
             <p className={`text-xs sm:text-sm max-w-md mx-auto mt-1 leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-400'}`}>
-              Selamat datang di ProjectFlow! Paket <strong>{planName}</strong> Anda telah aktif dengan akses hak penuh.
+              Selamat datang di Orvian! Paket <strong>{planName}</strong> Anda telah aktif dengan akses hak penuh.
             </p>
           </div>
+        </div>
+
+        {/* Live Order Confirmation Status Box (Fitur Cek Pembayaran Realtime) */}
+        <div className={`p-5 rounded-2xl border transition-all ${
+          orderStatus === 'confirmed' || isUnlocked
+            ? 'bg-emerald-500/10 border-emerald-500/30'
+            : isLight ? 'bg-amber-50/80 border-amber-200' : 'bg-[#18181D] border-[#25252C]'
+        }`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                orderStatus === 'confirmed' || isUnlocked
+                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+                  : 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+              }`}>
+                {orderStatus === 'confirmed' || isUnlocked ? (
+                  <CheckCircle2 size={18} />
+                ) : (
+                  <Clock size={18} />
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-100">
+                    Status Verifikasi Admin:
+                  </h4>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                    orderStatus === 'confirmed' || isUnlocked
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30'
+                      : 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30'
+                  }`}>
+                    {orderStatus === 'confirmed' || isUnlocked ? '✓ TERKONFIRMASI LUNAS' : '⏳ MENUNGGU KONFIRMASI'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                  ID: <span className="font-mono font-bold text-amber-500">{orderId}</span> • Diperbarui otomatis secara live
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => checkConfirmationStatus(true)}
+              disabled={isCheckingStatus}
+              className={`flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                isLight
+                  ? 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300 shadow-xs'
+                  : 'bg-[#22222A] hover:bg-[#2A2A35] text-zinc-200 border-[#32323D]'
+              }`}
+            >
+              <RefreshCw size={13} className={isCheckingStatus ? 'animate-spin text-amber-500' : 'text-slate-400'} />
+              <span>{isCheckingStatus ? 'Memeriksa...' : 'Cek Status Sekarang'}</span>
+            </button>
+          </div>
+
+          {statusFeedback && (
+            <div className={`mt-3 p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in ${
+              statusFeedback.type === 'success'
+                ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/50'
+                : statusFeedback.type === 'pending'
+                ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/50'
+                : 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700/50'
+            }`}>
+              {statusFeedback.type === 'success' ? (
+                <CheckCircle2 size={16} className="shrink-0" />
+              ) : (
+                <AlertCircle size={16} className="shrink-0" />
+              )}
+              <span>{statusFeedback.message}</span>
+            </div>
+          )}
         </div>
 
         {/* Invoice Download Action Banner */}
@@ -344,6 +470,8 @@ export default function PaymentView() {
               onClick={() => {
                 setWaConfirmed(true);
                 setIsUnlocked(true);
+                sessionStorage.setItem('orvian_wa_confirmed', 'true');
+                sessionStorage.setItem('orvian_payment_unlocked', 'true');
                 changePlan(planId);
               }}
               className="flex-1 flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-all cursor-pointer active:scale-98"
@@ -359,6 +487,8 @@ export default function PaymentView() {
                 alert('Nomor WhatsApp 085820004069 berhasil disalin!');
                 setWaConfirmed(true);
                 setIsUnlocked(true);
+                sessionStorage.setItem('orvian_wa_confirmed', 'true');
+                sessionStorage.setItem('orvian_payment_unlocked', 'true');
                 changePlan(planId);
               }}
               className={`px-3 py-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
@@ -368,36 +498,6 @@ export default function PaymentView() {
               <Copy size={14} />
               <span>Salin No. WA</span>
             </button>
-          </div>
-
-          {/* Opsi alternatif: Input Kode Aktivasi Invoice Email */}
-          <div className="pt-3 border-t border-slate-200 dark:border-white/10 space-y-2">
-            <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-400">
-              Atau aktivasi langsung menggunakan Nomor Invoice / Kode Verifikasi dari email:
-            </p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={activationToken}
-                onChange={(e) => {
-                  setActivationToken(e.target.value);
-                  setTokenError('');
-                }}
-                placeholder={`Contoh: ${orderId}`}
-                className={`flex-1 px-3 py-2 rounded-lg border text-xs font-mono uppercase focus:outline-none focus:ring-1 focus:ring-amber-500 ${
-                  tokenError ? 'border-rose-400 bg-rose-50/30' : isLight ? 'bg-white border-slate-300' : 'bg-[#18181D] border-[#2A2A33] text-white'
-                }`}
-              />
-              <button
-                type="button"
-                onClick={handleActivateByToken}
-                disabled={isActivating}
-                className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all cursor-pointer"
-              >
-                {isActivating ? 'Memvalidasi...' : 'Aktivasi Akses'}
-              </button>
-            </div>
-            {tokenError && <p className="text-[11px] text-rose-500">{tokenError}</p>}
           </div>
         </div>
 
@@ -417,7 +517,7 @@ export default function PaymentView() {
           </button>
           {!waConfirmed && !isUnlocked && (
             <p className="text-[11px] text-rose-500 mt-2 font-medium">
-              * Tombol dashboard akan terbuka setelah Anda melakukan konfirmasi ke WhatsApp atau memasukkan kode aktivasi dari invoice email.
+              * Tombol dashboard akan terbuka setelah pembayaran diverifikasi oleh Admin atau setelah konfirmasi ke WhatsApp.
             </p>
           )}
         </div>
@@ -430,7 +530,7 @@ export default function PaymentView() {
       {/* Top Breadcrumb & Back button */}
       <div className="flex items-center justify-between pb-6 border-b border-slate-200 dark:border-[#222228] mb-8">
         <button
-          onClick={() => setCurrentView('landing')}
+          onClick={handleCancelAndReset}
           className={`flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
             isLight
               ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 shadow-2xs'
@@ -582,7 +682,7 @@ export default function PaymentView() {
               {/* QRIS */}
               <button
                 type="button"
-                onClick={() => setPaymentMethod('qris')}
+                onClick={() => handleSelectPaymentMethod('qris')}
                 className={`p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                   paymentMethod === 'qris'
                     ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-400'
@@ -604,7 +704,7 @@ export default function PaymentView() {
               {/* Bank Transfer */}
               <button
                 type="button"
-                onClick={() => setPaymentMethod('bank_transfer')}
+                onClick={() => handleSelectPaymentMethod('bank_transfer')}
                 className={`p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                   paymentMethod === 'bank_transfer'
                     ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-400'
@@ -618,22 +718,24 @@ export default function PaymentView() {
                 </div>
               </button>
 
-              {/* Credit Card */}
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('credit_card')}
-                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                  paymentMethod === 'credit_card'
-                    ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-400'
-                    : isLight ? 'bg-slate-50 hover:bg-slate-100 border-slate-200' : 'bg-[#1A1A20] hover:bg-[#202026] border-[#282830]'
+              {/* Credit Card - Coming Soon */}
+              <div
+                className={`relative p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all select-none opacity-60 cursor-not-allowed ${
+                  isLight ? 'bg-slate-100/70 border-slate-200 text-slate-400' : 'bg-[#15151A] border-[#222228] text-zinc-500'
                 }`}
+                title="Metode pembayaran Kartu Debit / Kredit segera hadir"
               >
-                <CreditCard size={24} className={paymentMethod === 'credit_card' ? 'text-amber-500' : 'text-slate-500'} />
-                <div className="mt-2">
-                  <p className="text-xs font-bold">Kartu Debit/Kredit</p>
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">Visa & Mastercard</p>
+                <div className="flex items-center justify-between">
+                  <CreditCard size={24} className="text-slate-400 dark:text-zinc-500" />
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">
+                    Coming Soon
+                  </span>
                 </div>
-              </button>
+                <div className="mt-2">
+                  <p className="text-xs font-bold text-slate-500 dark:text-zinc-400">Kartu Debit/Kredit</p>
+                  <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-0.5">Visa & Mastercard</p>
+                </div>
+              </div>
             </div>
 
             {/* Payment Details Container */}
@@ -687,63 +789,37 @@ export default function PaymentView() {
                 isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-[#18181D] border-[#25252C]'
               }`}>
                 <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-200 dark:border-[#26262F]">
-                  <span className="font-bold">BCA Virtual Account (Verifikasi Otomatis)</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">Aktif 24 Jam</span>
+                  <span className="font-bold">{adminSettings?.bankName || 'BCA Virtual Account (Verifikasi Otomatis)'}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 font-bold">Aktif 24 Jam</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-slate-400 block">Nomor Virtual Account:</span>
                     <span className="text-base font-mono font-bold tracking-wider text-slate-800 dark:text-white">
-                      80777 0812 3456 7890
+                      {adminSettings?.bankVaNumber || '80777 0812 3456 7890'}
                     </span>
+                    {adminSettings?.bankAccountHolder && (
+                      <span className="text-[10px] text-slate-500 dark:text-zinc-400 block mt-0.5">
+                        a.n. <strong className="text-slate-700 dark:text-zinc-200">{adminSettings.bankAccountHolder}</strong>
+                      </span>
+                    )}
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleCopy('80777081234567890', 'bca')}
+                    onClick={() => handleCopy((adminSettings?.bankVaNumber || '80777081234567890').replace(/\s+/g, ''), 'va')}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-200 hover:bg-slate-300 dark:bg-[#25252E] dark:hover:bg-[#2D2D38] cursor-pointer"
                   >
-                    {copiedText === 'bca' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                    <span>{copiedText === 'bca' ? 'Tersalin' : 'Salin VA'}</span>
+                    {copiedText === 'va' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                    <span>{copiedText === 'va' ? 'Tersalin' : 'Salin VA'}</span>
                   </button>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed">
-                  Lakukan pembayaran melalui ATM, m-BCA, atau KlikBCA. Sistem otomatis mengaktifkan paket Anda tanpa konfirmasi manual.
+                  {adminSettings?.bankInstructions || 'Lakukan pembayaran melalui ATM, m-BCA, atau KlikBCA. Sistem otomatis mengaktifkan paket Anda tanpa konfirmasi manual.'}
                 </p>
               </div>
             )}
 
-            {paymentMethod === 'credit_card' && (
-              <div className={`p-4 rounded-xl border space-y-3 ${
-                isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-[#18181D] border-[#25252C]'
-              }`}>
-                <div>
-                  <label className="text-[11px] font-semibold block mb-1">Nomor Kartu (Simulasi)</label>
-                  <input
-                    type="text"
-                    defaultValue="4000 1234 5678 9010"
-                    className="w-full p-2.5 rounded-lg border text-xs font-mono bg-white dark:bg-[#1A1A20] border-slate-300 dark:border-[#2F2F38]"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[11px] font-semibold block mb-1">Masa Berlaku</label>
-                    <input
-                      type="text"
-                      defaultValue="12/28"
-                      className="w-full p-2.5 rounded-lg border text-xs font-mono bg-white dark:bg-[#1A1A20] border-slate-300 dark:border-[#2F2F38]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-semibold block mb-1">CVV</label>
-                    <input
-                      type="password"
-                      defaultValue="888"
-                      className="w-full p-2.5 rounded-lg border text-xs font-mono bg-white dark:bg-[#1A1A20] border-slate-300 dark:border-[#2F2F38]"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Credit card form removed as method is set to coming soon */}
           </div>
         </div>
 
@@ -818,12 +894,60 @@ export default function PaymentView() {
               </div>
             </div>
 
+            {/* Syarat & Ketentuan Checklist */}
+            <div className={`p-3.5 rounded-xl border transition-all ${
+              errors.terms
+                ? 'border-rose-400 bg-rose-50/30 dark:bg-rose-950/20'
+                : termsAccepted
+                ? 'border-amber-400/60 bg-amber-500/5'
+                : isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#18181D] border-[#25252C]'
+            }`}>
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => {
+                    setTermsAccepted(e.target.checked);
+                    if (errors.terms && e.target.checked) {
+                      setErrors(prev => ({ ...prev, terms: '' }));
+                    }
+                  }}
+                  className="mt-0.5 w-4 h-4 rounded text-amber-500 focus:ring-amber-500 border-slate-300 dark:border-[#383842] accent-amber-500 cursor-pointer shrink-0"
+                />
+                <div className="text-[11px] leading-relaxed text-slate-600 dark:text-zinc-300">
+                  Saya telah membaca dan menyetujui{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsTermsModalOpen(true);
+                    }}
+                    className="font-bold text-amber-600 dark:text-amber-400 underline hover:text-amber-500 transition-colors inline-block"
+                  >
+                    Syarat & Ketentuan Layanan
+                  </button>{' '}
+                  serta kebijakan privasi aktivasi paket Orvian.
+                </div>
+              </label>
+
+              {errors.terms && (
+                <div className="mt-2 text-[10px] text-rose-500 flex items-center gap-1 font-semibold animate-in fade-in">
+                  <AlertCircle size={12} className="shrink-0" />
+                  <span>{errors.terms}</span>
+                </div>
+              )}
+            </div>
+
             {/* Submit Button */}
             <button
               type="button"
               onClick={handleSubmitPayment}
               disabled={isProcessing}
-              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-black text-xs shadow-lg shadow-amber-500/25 transition-all cursor-pointer active:scale-98"
+              className={`w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-black text-xs shadow-lg transition-all cursor-pointer active:scale-98 ${
+                termsAccepted
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white shadow-amber-500/25'
+                  : 'bg-amber-500/80 hover:bg-amber-500 text-white shadow-amber-500/15'
+              }`}
             >
               {isProcessing ? (
                 <>
@@ -845,6 +969,99 @@ export default function PaymentView() {
           </div>
         </div>
       </div>
+
+      {/* Modal Bacaan Syarat & Ketentuan Layanan */}
+      {isTermsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className={`w-full max-w-xl max-h-[85vh] flex flex-col rounded-2xl border shadow-2xl overflow-hidden ${
+            isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#15151A] border-[#272730] text-zinc-100'
+          }`}>
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-[#22222A] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-amber-500/20">
+                  §
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm sm:text-base">Syarat & Ketentuan Layanan</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">Platform Workspace Orvian (PT Orvian Kreasi Digital)</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTermsModalOpen(false)}
+                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                  isLight ? 'hover:bg-slate-100 text-slate-500 border-slate-200' : 'hover:bg-[#202026] text-zinc-400 border-[#2A2A33]'
+                }`}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Modal Body / Scrollable Content */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs leading-relaxed text-slate-600 dark:text-zinc-300">
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-[11px]">
+                Dengan melanjutkan pembayaran dan mencentang persetujuan, Anda sepakat mematuhi seluruh klausul perjanjian penggunaan layanan Orvian di bawah ini.
+              </div>
+
+              <div className="space-y-1.5">
+                <h4 className="font-bold text-slate-900 dark:text-white text-xs">1. Ketentuan Akun & Lisensi</h4>
+                <p>
+                  Lisensi paket (Pro atau Team) diberikan kepada pembeli yang terdaftar melalui email yang dicantumkan saat checkout. Akses akun bersifat personal atau tim sesuai kuota paket, dan tidak diperkenankan untuk diperjualbelikan kembali tanpa izin tertulis dari pihak Orvian.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <h4 className="font-bold text-slate-900 dark:text-white text-xs">2. Pembayaran & Konfirmasi</h4>
+                <p>
+                  Seluruh pembayaran diproses melalui saluran resmi (QRIS Nasional & Virtual Account). Setelah transfer selesai, sistem akan mencatat nomor invoice resmi (misal: <code>INV-DD-MM-YYYY-XXX</code>). Pengguna wajib mengirimkan konfirmasi via WhatsApp atau memasukkan kode aktivasi dari email untuk sinkronisasi instan database cloud.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <h4 className="font-bold text-slate-900 dark:text-white text-xs">3. Keamanan Data & Privasi</h4>
+                <p>
+                  Seluruh data proyek, catatan, target, habits, dan integrasi Google Calendar disimpan dengan enkripsi standar industri (AES-256 dan protokol SSL aman). Orvian tidak membagikan atau menjual data pribadi pelanggan kepada pihak ketiga mana pun.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <h4 className="font-bold text-slate-900 dark:text-white text-xs">4. Kebijakan Refund & Pembatalan</h4>
+                <p>
+                  Jika terjadi kendala teknis atau kegagalan aktivasi dari pihak sistem kami yang tidak dapat diselesaikan dalam 1x24 jam kerja, pengguna berhak mengajukan pengembalian dana penuh (100% money-back guarantee) melalui jalur WhatsApp Customer Care.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <h4 className="font-bold text-slate-900 dark:text-white text-xs">5. Pembaruan Layanan</h4>
+                <p>
+                  Orvian berhak memperbarui dan menambahkan fitur baru guna meningkatkan kualitas workspace. Pengguna paket berbayar akan selalu mendapatkan pembaruan fitur eksklusif tanpa biaya tersembunyi tambahan.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-100 dark:border-[#22222A] flex items-center justify-between gap-3 bg-slate-50/50 dark:bg-[#121216]">
+              <span className="text-[11px] text-slate-500 dark:text-zinc-400">
+                Terakhir diperbarui: Oktober 2026
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setTermsAccepted(true);
+                  if (errors.terms) {
+                    setErrors(prev => ({ ...prev, terms: '' }));
+                  }
+                  setIsTermsModalOpen(false);
+                }}
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer"
+              >
+                Saya Mengerti & Setujui
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

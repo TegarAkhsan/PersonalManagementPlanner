@@ -11,6 +11,10 @@ export const defaultSettings = {
   footerNotes: 'Terima kasih telah mempercayakan alur kerja proyek Anda kepada Orvian. Layanan ini tunduk pada syarat & ketentuan resmi.',
   qrisImageUrl: '', // Optional custom uploaded QRIS image URL or base64
   qrisRawPayload: '00020101021226590014ID.LINKAJA.WWW01189360091800000000000215ID10200234567895204581253033605802ID5911ProjectFlow6007JAKARTA62070703A016304E85C',
+  bankName: 'BCA (Bank Central Asia)',
+  bankVaNumber: '80777 0812 3456 7890',
+  bankAccountHolder: 'PT ORVIAN KREASI DIGITAL',
+  bankInstructions: 'Lakukan pembayaran melalui ATM, m-BCA, atau KlikBCA. Sistem otomatis mengaktifkan paket Anda tanpa konfirmasi manual.',
   updatedAt: new Date().toISOString()
 };
 

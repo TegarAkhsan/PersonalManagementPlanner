@@ -8,7 +8,6 @@ import {
   Sun,
   Moon,
   Menu,
-  Sparkles,
   ShieldCheck,
   LogOut
 } from 'lucide-react';
@@ -23,7 +22,6 @@ export default function TopBar() {
     setIsSidebarOpen,
     theme,
     toggleTheme,
-    currentPlan,
     setCurrentView,
     user,
     logoutUser
@@ -107,24 +105,6 @@ export default function TopBar() {
 
       {/* Right Tools: Theme Toggle, Live Clock & Layout Controls */}
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* Plan / Role Indicator Badge */}
-        <button
-          onClick={() => setCurrentView('landing')}
-          title={`Paket Aktif: ${currentPlan}. Klik untuk melihat fitur.`}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
-            currentPlan === 'Team'
-              ? 'bg-gradient-to-r from-purple-500/15 to-indigo-500/15 border-purple-500/30 text-purple-600 dark:text-purple-300'
-              : currentPlan === 'Pro'
-                ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/15 border-amber-500/30 text-amber-600 dark:text-amber-300'
-                : isLight
-                  ? 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
-                  : 'bg-[#18181C] border-[#28282F] text-zinc-300 hover:bg-[#222228]'
-          }`}
-        >
-          <Sparkles size={13} className={currentPlan === 'Starter' ? 'text-slate-400' : 'text-amber-500'} />
-          <span className="uppercase tracking-wider text-[10px] font-black">{currentPlan} PLAN</span>
-        </button>
-
         {/* Soft Light / Dark Theme Switcher Button */}
         <button
           onClick={toggleTheme}

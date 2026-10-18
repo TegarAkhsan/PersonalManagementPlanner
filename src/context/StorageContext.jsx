@@ -72,22 +72,38 @@ export function StorageProvider({ children }) {
   const [createModalType, setCreateModalType] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Selected SaaS Pricing plan (Free, Pro, Team)
+  // Selected SaaS Pricing plan (Starter, Pro, Team)
   const [currentPlan, setCurrentPlan] = useState(() => {
-    return localStorage.getItem('projectflow_plan') || 'Pro';
+    return localStorage.getItem('projectflow_plan') || 'Team';
   });
 
   // Authenticated user state
   const [user, setUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem('orvian_user');
-      return savedUser ? JSON.parse(savedUser) : null;
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        const emailLower = (parsed.email || '').toLowerCase();
+        if (emailLower === 'tegarrigger@gmail.com' || emailLower === 'tegarakhsan@gmail.com' || emailLower.includes('admin')) {
+          parsed.role = 'admin';
+          localStorage.setItem('orvian_is_admin', 'true');
+          localStorage.setItem('projectflow_user_role', 'admin');
+        }
+        return parsed;
+      }
+      return null;
     } catch (e) {
       return null;
     }
   });
 
   const loginUser = (userData) => {
+    const emailLower = (userData?.email || '').toLowerCase();
+    if (emailLower === 'tegarrigger@gmail.com' || emailLower === 'tegarakhsan@gmail.com' || emailLower.includes('admin')) {
+      userData.role = 'admin';
+      localStorage.setItem('orvian_is_admin', 'true');
+      localStorage.setItem('projectflow_user_role', 'admin');
+    }
     setUser(userData);
     localStorage.setItem('orvian_user', JSON.stringify(userData));
   };
@@ -108,9 +124,17 @@ export function StorageProvider({ children }) {
   useEffect(() => {
     if (!supabase || !isSupabaseConfigured) return;
 
+    // Helper to clean access_token / OAuth hash fragment from browser URL
+    const cleanAuthHash = () => {
+      if (window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('error'))) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    };
+
     // Check existing active session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user && !user) {
+      if (session?.user) {
+        cleanAuthHash();
         const u = session.user;
         const userData = {
           name: u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'User',
@@ -120,11 +144,14 @@ export function StorageProvider({ children }) {
           registeredAt: u.created_at
         };
         loginUser(userData);
+        changePlan('Team');
+        setCurrentView('home');
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        cleanAuthHash();
         const u = session.user;
         const userData = {
           name: u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'User',
@@ -134,6 +161,7 @@ export function StorageProvider({ children }) {
           registeredAt: u.created_at
         };
         loginUser(userData);
+        changePlan('Team');
         setCurrentView('home');
       }
     });

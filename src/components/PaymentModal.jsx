@@ -12,6 +12,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useStorage } from '../context/StorageContext';
+import { getLocalSettings } from '../lib/invoiceSettingsService';
 
 export default function PaymentModal({ isOpen, onClose, selectedPlan, billingCycle = 'monthly' }) {
   const { changePlan, theme, setCurrentView } = useStorage();
@@ -21,6 +22,7 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan, billingCyc
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [copiedText, setCopiedText] = useState(null);
+  const adminSettings = getLocalSettings();
 
   if (!isOpen || !selectedPlan) return null;
 
@@ -35,7 +37,15 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan, billingCyc
     basePrice = isYearly ? selectedPlan.priceYearly : selectedPlan.priceMonthly;
   }
   const totalAmount = isYearly ? basePrice * 12 : basePrice;
-  const orderId = `INV-PF-${Math.floor(100000 + Math.random() * 900000)}`;
+  const [orderId] = useState(() => {
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yyyy = now.getFullYear();
+    const datePrefix = `${dd}-${mm}-${yyyy}`;
+    const randSeq = String(Math.floor(100 + Math.random() * 900));
+    return `INV-${datePrefix}-${randSeq}`;
+  });
 
   const handleCopy = (text, label) => {
     navigator.clipboard.writeText(text);
@@ -161,20 +171,19 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan, billingCyc
                   <span className="text-[9px] text-slate-400">BCA, Mandiri, BRI</span>
                 </button>
 
-                {/* Credit Card */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('credit_card')}
-                  className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    paymentMethod === 'credit_card'
-                      ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-400 font-bold text-amber-500'
-                      : isLight ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700' : 'bg-[#1A1A20] hover:bg-[#202026] border-[#282830] text-zinc-300'
+                {/* Credit Card - Coming Soon */}
+                <div
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all select-none opacity-60 cursor-not-allowed ${
+                    isLight ? 'bg-slate-100/70 border-slate-200 text-slate-400' : 'bg-[#15151A] border-[#222228] text-zinc-500'
                   }`}
+                  title="Metode pembayaran Kartu Debit / Kredit segera hadir"
                 >
-                  <CreditCard size={22} className={paymentMethod === 'credit_card' ? 'text-amber-500' : 'text-slate-500'} />
-                  <span className="text-xs font-bold">Kartu Debit/Kredit</span>
-                  <span className="text-[9px] text-slate-400">Visa & Mastercard</span>
-                </button>
+                  <CreditCard size={22} className="text-slate-400 dark:text-zinc-500" />
+                  <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">Kartu Debit/Kredit</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 font-bold uppercase tracking-wider">
+                    Coming Soon
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -222,63 +231,37 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan, billingCyc
                 isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-[#18181D] border-[#25252C]'
               }`}>
                 <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-200 dark:border-[#26262F]">
-                  <span className="font-bold">BCA Virtual Account (Otomatis)</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">24 Jam</span>
+                  <span className="font-bold">{adminSettings?.bankName || 'BCA Virtual Account (Otomatis)'}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 font-bold">24 Jam</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-slate-400 block">Nomor Virtual Account:</span>
                     <span className="text-sm font-mono font-bold tracking-wider text-slate-800 dark:text-white">
-                      80777 0812 3456 7890
+                      {adminSettings?.bankVaNumber || '80777 0812 3456 7890'}
                     </span>
+                    {adminSettings?.bankAccountHolder && (
+                      <span className="text-[10px] text-slate-500 dark:text-zinc-400 block mt-0.5">
+                        a.n. <strong className="text-slate-700 dark:text-zinc-200">{adminSettings.bankAccountHolder}</strong>
+                      </span>
+                    )}
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleCopy('80777081234567890', 'bca')}
+                    onClick={() => handleCopy((adminSettings?.bankVaNumber || '80777081234567890').replace(/\s+/g, ''), 'va')}
                     className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-slate-200 hover:bg-slate-300 dark:bg-[#25252E] dark:hover:bg-[#2D2D38] cursor-pointer"
                   >
-                    {copiedText === 'bca' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                    <span>{copiedText === 'bca' ? 'Tersalin' : 'Salin'}</span>
+                    {copiedText === 'va' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                    <span>{copiedText === 'va' ? 'Tersalin' : 'Salin'}</span>
                   </button>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-                  Pembayaran akan diverifikasi secara otomatis dalam waktu 1-2 menit setelah transfer selesai.
+                  {adminSettings?.bankInstructions || 'Pembayaran akan diverifikasi secara otomatis dalam waktu 1-2 menit setelah transfer selesai.'}
                 </p>
               </div>
             )}
 
-            {paymentMethod === 'credit_card' && (
-              <div className={`p-4 rounded-xl border space-y-3 ${
-                isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-[#18181D] border-[#25252C]'
-              }`}>
-                <div>
-                  <label className="text-[11px] font-medium block mb-1">Nomor Kartu (Simulasi Sandbox)</label>
-                  <input
-                    type="text"
-                    defaultValue="4000 1234 5678 9010"
-                    className="w-full p-2 rounded-lg border text-xs font-mono bg-white dark:bg-[#1A1A20] border-slate-300 dark:border-[#2F2F38]"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[11px] font-medium block mb-1">Masa Berlaku (MM/YY)</label>
-                    <input
-                      type="text"
-                      defaultValue="12/28"
-                      className="w-full p-2 rounded-lg border text-xs font-mono bg-white dark:bg-[#1A1A20] border-slate-300 dark:border-[#2F2F38]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-medium block mb-1">CVV / CVC</label>
-                    <input
-                      type="password"
-                      defaultValue="888"
-                      className="w-full p-2 rounded-lg border text-xs font-mono bg-white dark:bg-[#1A1A20] border-slate-300 dark:border-[#2F2F38]"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Credit card form removed as method is set to coming soon */}
 
             {/* Security Guarantee Badge */}
             <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 dark:text-zinc-400">

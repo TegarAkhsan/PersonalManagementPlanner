@@ -24,7 +24,8 @@ import {
   QrCode,
   Download,
   Save,
-  Upload
+  Upload,
+  Building2
 } from 'lucide-react';
 import { useStorage } from '../context/StorageContext';
 import { fetchAllOrders, updateOrderStatus } from '../lib/orderService';
@@ -609,6 +610,91 @@ export default function AdminPanelView() {
               </div>
             </div>
 
+            {/* Virtual Account Bank Configuration Card */}
+            <div className={`p-6 rounded-2xl border space-y-4 ${
+              isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-[#141417] border-[#24242A]'
+            }`}>
+              <div className="flex items-center justify-between">
+                <h4 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
+                  isLight ? 'text-slate-900' : 'text-zinc-200'
+                }`}>
+                  <Building2 size={16} className="text-amber-500" />
+                  <span>2. Konfigurasi Virtual Account Bank (Pembayaran)</span>
+                </h4>
+                <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                  Transfer Bank / VA
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-zinc-300">
+                    Nama Bank / Jenis VA
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.bankName || ''}
+                    onChange={(e) => setSettings(prev => ({ ...prev, bankName: e.target.value }))}
+                    placeholder="Contoh: BCA (Bank Central Asia)"
+                    className={`w-full px-3 py-2.5 rounded-lg border text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 ${
+                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-[#1B1B20] border-[#2B2B32] text-white'
+                    }`}
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Misal: BCA Virtual Account, Mandiri, BRI, atau BNI.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-zinc-300">
+                    Nomor Virtual Account / Rekening
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.bankVaNumber || ''}
+                    onChange={(e) => setSettings(prev => ({ ...prev, bankVaNumber: e.target.value }))}
+                    placeholder="Contoh: 80777 0812 3456 7890"
+                    className={`w-full px-3 py-2.5 rounded-lg border text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500 ${
+                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-[#1B1B20] border-[#2B2B32] text-white'
+                    }`}
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Nomor rekening/VA yang akan disalin oleh pelanggan saat checkout.
+                  </p>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-zinc-300">
+                    Atas Nama Rekening (Account Holder)
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.bankAccountHolder || ''}
+                    onChange={(e) => setSettings(prev => ({ ...prev, bankAccountHolder: e.target.value }))}
+                    placeholder="Contoh: PT ORVIAN KREASI DIGITAL"
+                    className={`w-full px-3 py-2.5 rounded-lg border text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 ${
+                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-[#1B1B20] border-[#2B2B32] text-white'
+                    }`}
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-semibold mb-1 text-slate-700 dark:text-zinc-300">
+                    Petunjuk Pembayaran Pelanggan
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={settings.bankInstructions || ''}
+                    onChange={(e) => setSettings(prev => ({ ...prev, bankInstructions: e.target.value }))}
+                    placeholder="Lakukan pembayaran melalui ATM, m-BCA, atau KlikBCA..."
+                    className={`w-full px-3 py-2 rounded-lg border text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 ${
+                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-[#1B1B20] border-[#2B2B32] text-white'
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Invoice Template Settings Card */}
             <div className={`p-6 rounded-2xl border space-y-4 ${
               isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-[#141417] border-[#24242A]'
@@ -616,7 +702,7 @@ export default function AdminPanelView() {
               <h4 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
                 isLight ? 'text-slate-900' : 'text-zinc-200'
               }`}>
-                <span>2. Identitas Brand & Template Invoice</span>
+                <span>3. Identitas Brand & Template Invoice</span>
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">

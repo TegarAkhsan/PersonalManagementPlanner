@@ -38,6 +38,16 @@ export default function Sidebar() {
   const isLight = theme === 'light';
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
 
+  // Check if current user is admin (admin email / role flag / hash)
+  const isAdminUser = Boolean(
+    user?.role === 'admin' ||
+    user?.email?.toLowerCase().includes('admin') ||
+    user?.email?.toLowerCase() === 'tegarakhsan@gmail.com' ||
+    user?.email?.toLowerCase() === 'tegarrigger@gmail.com' ||
+    localStorage.getItem('orvian_is_admin') === 'true' ||
+    localStorage.getItem('projectflow_user_role') === 'admin'
+  );
+
   const navItems = [
     { id: 'home', label: 'Ringkasan', icon: LayoutDashboard },
     { id: 'today', label: 'Hari Ini', icon: CalendarCheck },
@@ -52,7 +62,7 @@ export default function Sidebar() {
 
   const systemItems = [
     { id: 'archive-habits', label: 'Arsip Habit', icon: Archive },
-    { id: 'settings', label: 'Pengaturan & Supabase', icon: Settings }
+    { id: 'settings', label: 'Pengaturan Akun & Aplikasi', icon: Settings }
   ];
 
   const createOptions = [
@@ -285,9 +295,15 @@ export default function Sidebar() {
                 <p className={`text-xs font-semibold truncate ${isLight ? 'text-slate-800' : 'text-zinc-200'}`}>
                   {user?.name || 'Orvian Workspace'}
                 </p>
-                <span className="text-[8px] font-extrabold uppercase px-1 py-0.2 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">
-                  ADMIN
-                </span>
+                {isAdminUser ? (
+                  <span className="text-[8px] font-extrabold uppercase px-1 py-0.2 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                    ADMIN
+                  </span>
+                ) : (
+                  <span className="text-[8px] font-extrabold uppercase px-1 py-0.2 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                    {currentPlan.toUpperCase()}
+                  </span>
+                )}
               </div>
               <p className={`text-[10px] truncate ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
                 {user?.email || 'One space. Every ambition.'}
@@ -312,32 +328,36 @@ export default function Sidebar() {
             </button>
           </div>
 
-          {/* Admin Direct Access Button */}
-          <button
-            onClick={() => setCurrentView('admin')}
-            className={`w-full mt-2 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
-              currentView === 'admin'
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                : isLight
-                  ? 'bg-white hover:bg-slate-100 text-indigo-600 border-indigo-200'
-                  : 'bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
-            }`}
-          >
-            <ShieldCheck size={12} />
-            <span>Admin Control Panel</span>
-          </button>
+          {/* Admin Direct Access Button only visible to Admin */}
+          {isAdminUser && (
+            <button
+              onClick={() => setCurrentView('admin')}
+              className={`w-full mt-2 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                currentView === 'admin'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  : isLight
+                    ? 'bg-white hover:bg-slate-100 text-indigo-600 border-indigo-200'
+                    : 'bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+              }`}
+            >
+              <ShieldCheck size={12} />
+              <span>Admin Control Panel</span>
+            </button>
+          )}
         </div>
       ) : (
         <div className={`p-2 border-t flex flex-col items-center gap-1.5 flex-shrink-0 ${
           isLight ? 'border-slate-200' : 'border-[#26262B]'
         }`}>
-          <button
-            onClick={() => setCurrentView('admin')}
-            title="Buka Admin Control Panel"
-            className="w-7 h-7 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all cursor-pointer"
-          >
-            <ShieldCheck size={14} />
-          </button>
+          {isAdminUser && (
+            <button
+              onClick={() => setCurrentView('admin')}
+              title="Buka Admin Control Panel"
+              className="w-7 h-7 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all cursor-pointer"
+            >
+              <ShieldCheck size={14} />
+            </button>
+          )}
 
           <button
             onClick={async () => {

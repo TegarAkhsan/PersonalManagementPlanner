@@ -140,9 +140,8 @@ export default function LandingPageView() {
           </span>
         </h1>
 
-        <p className={`text-base sm:text-lg max-w-2xl mx-auto leading-relaxed font-normal ${
-          isLight ? 'text-slate-600' : 'text-zinc-400'
-        }`}>
+        <p className={`text-base sm:text-lg max-w-2xl mx-auto leading-relaxed font-normal ${isLight ? 'text-slate-600' : 'text-zinc-400'
+          }`}>
           Tingkatkan produktivitas harian hingga 3x lipat dengan workspace terintegrasi. Portofolio proyek visual, ritme habit harian, kalender Google Sync, dan target OKR dalam satu ekosistem cepat.
         </p>
 
@@ -155,14 +154,13 @@ export default function LandingPageView() {
             <span>{user ? 'Buka Dashboard Anda' : 'Mulai Gratis Sekarang'}</span>
             <ArrowRight size={16} />
           </button>
-          
+
           <a
             href="#pricing"
-            className={`w-full sm:w-auto px-6 py-3.5 rounded-xl text-sm font-bold border transition-all text-center ${
-              isLight
-                ? 'bg-white/80 hover:bg-white text-slate-700 border-slate-300 shadow-xs backdrop-blur-sm'
-                : 'bg-white/5 hover:bg-white/10 text-zinc-200 border-white/10 backdrop-blur-sm'
-            }`}
+            className={`w-full sm:w-auto px-6 py-3.5 rounded-xl text-sm font-bold border transition-all text-center ${isLight
+              ? 'bg-white/80 hover:bg-white text-slate-700 border-slate-300 shadow-xs backdrop-blur-sm'
+              : 'bg-white/5 hover:bg-white/10 text-zinc-200 border-white/10 backdrop-blur-sm'
+              }`}
           >
             Eksplorasi Paket & Harga
           </a>
@@ -171,14 +169,12 @@ export default function LandingPageView() {
         {/* Social Proof Avatars */}
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs">
           <div className="flex -space-x-2">
-            {['T','K','A','M','R'].map((char, i) => (
+            {['T', 'K', 'A', 'M', 'R'].map((char, i) => (
               <div
                 key={i}
-                className={`w-7 h-7 rounded-full border-2 ${
-                  isLight ? 'border-white' : 'border-[#0B0B0D]'
-                } text-[10px] font-bold text-white flex items-center justify-center shadow-xs ${
-                  ['bg-amber-500','bg-indigo-500','bg-emerald-500','bg-rose-500','bg-sky-500'][i]
-                }`}
+                className={`w-7 h-7 rounded-full border-2 ${isLight ? 'border-white' : 'border-[#0B0B0D]'
+                  } text-[10px] font-bold text-white flex items-center justify-center shadow-xs ${['bg-amber-500', 'bg-indigo-500', 'bg-emerald-500', 'bg-rose-500', 'bg-sky-500'][i]
+                  }`}
               >
                 {char}
               </div>
@@ -202,15 +198,13 @@ export default function LandingPageView() {
           <div className="absolute inset-x-8 top-10 h-64 bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-indigo-500/20 blur-3xl -z-10 rounded-full" />
 
           {/* Device Mockup Window */}
-          <div className={`rounded-2xl border text-left overflow-hidden shadow-2xl backdrop-blur-xl transition-all ${
-            isLight
-              ? 'bg-white/95 border-slate-200/90 shadow-slate-200/60 ring-1 ring-black/5'
-              : 'bg-[#121216]/95 border-white/10 shadow-black/80 ring-1 ring-white/5'
-          }`}>
-            {/* Window Topbar */}
-            <div className={`px-4 py-3 border-b flex items-center justify-between text-xs ${
-              isLight ? 'bg-slate-50/90 border-slate-200' : 'bg-[#16161B] border-white/5'
+          <div className={`rounded-2xl border text-left overflow-hidden shadow-2xl backdrop-blur-xl transition-all ${isLight
+            ? 'bg-white/95 border-slate-200/90 shadow-slate-200/60 ring-1 ring-black/5'
+            : 'bg-[#121216]/95 border-white/10 shadow-black/80 ring-1 ring-white/5'
             }`}>
+            {/* Window Topbar */}
+            <div className={`px-4 py-3 border-b flex items-center justify-between text-xs ${isLight ? 'bg-slate-50/90 border-slate-200' : 'bg-[#16161B] border-white/5'
+              }`}>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block" />
                 <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
@@ -301,29 +295,24 @@ export default function LandingPageView() {
 
       {/* Feature Showcase Grid: 6 Pillars of Product Value */}
       <section id="fitur" className="space-y-10 scroll-mt-20 relative">
-        <div className="glow-amber w-[350px] h-[250px] top-0 left-1/2 -translate-x-1/2 opacity-40 pointer-events-none" style={{position:'absolute', zIndex:0}} />
-        
+        <div className="glow-amber w-[350px] h-[250px] top-0 left-1/2 -translate-x-1/2 opacity-40 pointer-events-none" style={{ position: 'absolute', zIndex: 0 }} />
+
         <div className="text-center max-w-3xl mx-auto space-y-3 relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25">
-            <Zap size={13} className="text-amber-500" />
-            <span>Keunggulan & Nilai Plus Orvian</span>
-          </div>
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
             Mengapa Memilih Orvian Dibanding Tool Produktivitas Lain?
           </h2>
           <p className={`text-sm sm:text-base leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-400'}`}>
-            Bukan sekadar to-do list biasa yang mudah ditinggalkan. Orvian dirancang sebagai **Executive Life & Project OS** yang menghubungkan visi besar Anda dengan eksekusi harian secara nyata.
+            Bukan sekadar to-do list biasa yang mudah ditinggalkan. Orvian dirancang sebagai <strong className={`font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Executive Life &amp; Project OS</strong> yang menghubungkan visi besar Anda dengan eksekusi harian secara nyata.
           </p>
         </div>
 
         {/* 6 Value Plus Cards with elevated solid background and clear breathing room */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
           {/* 1. All-in-One Unified Space */}
-          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${
-            isLight
-              ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
-              : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-amber-500/40'
-          }`}>
+          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${isLight
+            ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
+            : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-amber-500/40'
+            }`}>
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-500 flex items-center justify-center font-bold">
               <Layers size={22} />
             </div>
@@ -337,17 +326,16 @@ export default function LandingPageView() {
           </div>
 
           {/* 2. Visual Kanban & Sprint Prioritization */}
-          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${
-            isLight
-              ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
-              : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-emerald-500/40'
-          }`}>
+          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${isLight
+            ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
+            : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-emerald-500/40'
+            }`}>
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 flex items-center justify-center font-bold">
               <CheckSquare size={22} />
             </div>
             <h3 className="text-base font-bold tracking-tight">2. Manajemen Proyek Kanban & Agile</h3>
             <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-              Pindahkan tugas secara fleksibel (*Ready to Start, In Progress, Review, Done*), lengkapi dengan deadline, tags warna, tingkat prioritas (*Urgent/Medium/Low*), dan sub-tugas detail.
+              Pindahkan tugas secara fleksibel (<span className="italic">Ready to Start, In Progress, Review, Done</span>), lengkapi dengan deadline, tags warna, tingkat prioritas (<span className="italic">Urgent/Medium/Low</span>), dan sub-tugas detail.
             </p>
             <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-emerald-500">
               <CheckCircle2 size={14} /> Pantau kemajuan sprint seketika
@@ -355,17 +343,16 @@ export default function LandingPageView() {
           </div>
 
           {/* 3. Gamified Habit Tracking */}
-          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${
-            isLight
-              ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
-              : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-orange-500/40'
-          }`}>
+          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${isLight
+            ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
+            : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-orange-500/40'
+            }`}>
             <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/25 text-orange-500 flex items-center justify-center font-bold">
               <Flame size={22} />
             </div>
             <h3 className="text-base font-bold tracking-tight">3. Pelacak Kebiasaan & Streak Gamifikasi</h3>
             <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-              Bentuk rutinitas positif tanpa putus dengan sistem heatmap bulanan interaktif, penghitung rekor konsistensi (*streak*), dan checklist rutinitas harian yang memotivasi setiap pagi.
+              Bentuk rutinitas positif tanpa putus dengan sistem heatmap bulanan interaktif, penghitung rekor konsistensi (<span className="italic">streak</span>), dan checklist rutinitas harian yang memotivasi setiap pagi.
             </p>
             <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-orange-500">
               <CheckCircle2 size={14} /> Hindari prokrastinasi harian
@@ -373,11 +360,10 @@ export default function LandingPageView() {
           </div>
 
           {/* 4. Ekspor Dokumen Resmi (PDF & DOCX) */}
-          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${
-            isLight
-              ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
-              : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-indigo-500/40'
-          }`}>
+          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${isLight
+            ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
+            : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-indigo-500/40'
+            }`}>
             <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/25 text-indigo-500 flex items-center justify-center font-bold">
               <Database size={22} />
             </div>
@@ -391,11 +377,10 @@ export default function LandingPageView() {
           </div>
 
           {/* 5. Sinkronisasi Kalender & Agenda */}
-          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${
-            isLight
-              ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
-              : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-sky-500/40'
-          }`}>
+          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${isLight
+            ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
+            : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-sky-500/40'
+            }`}>
             <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/25 text-sky-500 flex items-center justify-center font-bold">
               <Calendar size={22} />
             </div>
@@ -409,11 +394,10 @@ export default function LandingPageView() {
           </div>
 
           {/* 6. Measurable Analytics & Invoice System */}
-          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${
-            isLight
-              ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
-              : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-purple-500/40'
-          }`}>
+          <div className={`p-7 rounded-2xl border space-y-4 transition-all duration-200 hover:-translate-y-1.5 ${isLight
+            ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
+            : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-purple-500/40'
+            }`}>
             <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/25 text-purple-500 flex items-center justify-center font-bold">
               <BarChart2 size={22} />
             </div>
@@ -428,23 +412,18 @@ export default function LandingPageView() {
         </div>
 
         {/* ── Visual Comparison: Tanpa Orvian vs Menggunakan Orvian ── */}
-        <div className={`mt-14 max-w-5xl mx-auto rounded-3xl border p-7 sm:p-10 ${
-          isLight
-            ? 'bg-white border-slate-200 shadow-[0_10px_35px_rgb(0,0,0,0.05)]'
-            : 'bg-[#141418] border-white/10 shadow-[0_10px_35px_rgb(0,0,0,0.4)]'
-        }`}>
+        <div className={`mt-14 max-w-5xl mx-auto rounded-3xl border p-7 sm:p-10 ${isLight
+          ? 'bg-white border-slate-200 shadow-[0_10px_35px_rgb(0,0,0,0.05)]'
+          : 'bg-[#141418] border-white/10 shadow-[0_10px_35px_rgb(0,0,0,0.4)]'
+          }`}>
           <div className="text-center max-w-xl mx-auto mb-8">
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-500 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
-              Perbandingan Nyata
-            </span>
             <h3 className="text-2xl sm:text-3xl font-black mt-2.5 tracking-tight">Mengapa Beralih ke Orvian?</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             {/* Box Tanpa Orvian */}
-            <div className={`p-6 rounded-2xl border space-y-4 flex flex-col justify-between ${
-              isLight ? 'bg-rose-50/40 border-rose-200 text-slate-700' : 'bg-rose-950/20 border-rose-900/30 text-zinc-300'
-            }`}>
+            <div className={`p-6 rounded-2xl border space-y-4 flex flex-col justify-between ${isLight ? 'bg-rose-50/40 border-rose-200 text-slate-700' : 'bg-rose-950/20 border-rose-900/30 text-zinc-300'
+              }`}>
               <div>
                 <div className="flex items-center gap-2 text-rose-500 font-bold text-sm mb-3">
                   <span className="w-6 h-6 rounded-full bg-rose-500/20 flex items-center justify-center text-xs">✕</span>
@@ -472,9 +451,8 @@ export default function LandingPageView() {
             </div>
 
             {/* Box Dengan Orvian */}
-            <div className={`p-6 rounded-2xl border space-y-4 flex flex-col justify-between ${
-              isLight ? 'bg-emerald-50/50 border-emerald-300 text-slate-800' : 'bg-emerald-950/25 border-emerald-800/40 text-zinc-200'
-            }`}>
+            <div className={`p-6 rounded-2xl border space-y-4 flex flex-col justify-between ${isLight ? 'bg-emerald-50/50 border-emerald-300 text-slate-800' : 'bg-emerald-950/25 border-emerald-800/40 text-zinc-200'
+              }`}>
               <div>
                 <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm mb-3">
                   <span className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
@@ -506,11 +484,8 @@ export default function LandingPageView() {
 
       {/* SaaS Pricing Section */}
       <section id="pricing" className="space-y-8 pt-6 relative">
-        <div className="glow-indigo w-[500px] h-[300px] top-0 right-0 opacity-60" style={{position:'absolute', zIndex:0}} />
+        <div className="glow-indigo w-[500px] h-[300px] top-0 right-0 opacity-60" style={{ position: 'absolute', zIndex: 0 }} />
         <div className="text-center max-w-2xl mx-auto space-y-3 relative">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
-            Pilihan Paket SaaS
-          </div>
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
             Pilih Paket Berlangganan Sesuai Kebutuhan Anda
           </h2>
@@ -525,9 +500,8 @@ export default function LandingPageView() {
             </span>
             <button
               onClick={() => setBillingCycle(b => b === 'monthly' ? 'yearly' : 'monthly')}
-              className={`w-12 h-6 rounded-md p-1 border transition-colors flex items-center ${
-                billingCycle === 'yearly' ? 'bg-amber-500 border-amber-600 justify-end' : 'bg-slate-200 dark:bg-zinc-800 border-slate-300 dark:border-zinc-700 justify-start'
-              }`}
+              className={`w-12 h-6 rounded-md p-1 border transition-colors flex items-center ${billingCycle === 'yearly' ? 'bg-amber-500 border-amber-600 justify-end' : 'bg-slate-200 dark:bg-zinc-800 border-slate-300 dark:border-zinc-700 justify-start'
+                }`}
             >
               <div className="w-4 h-4 rounded-sm bg-white shadow-xs"></div>
             </button>
@@ -547,13 +521,10 @@ export default function LandingPageView() {
             return (
               <div
                 key={p.id}
-                className={`rounded-xl p-6 border flex flex-col justify-between transition-all duration-200 relative backdrop-blur-sm ${
-                  p.highlightBorder
-                } ${
-                  isLight ? 'bg-white/80' : 'bg-white/5'
-                } ${
-                  p.popular ? 'ring-2 ring-amber-500 scale-[1.02]' : 'hover:scale-[1.01]'
-                }`}
+                className={`rounded-xl p-6 border flex flex-col justify-between transition-all duration-200 relative backdrop-blur-sm ${p.highlightBorder
+                  } ${isLight ? 'bg-white/80' : 'bg-white/5'
+                  } ${p.popular ? 'ring-2 ring-amber-500 scale-[1.02]' : 'hover:scale-[1.01]'
+                  }`}
               >
                 {p.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-amber-500 text-white shadow-md">
@@ -564,9 +535,8 @@ export default function LandingPageView() {
                 <div>
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-lg font-bold">{p.name}</h3>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${
-                      isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-[#1E1E24] text-zinc-300 border-[#2A2A32]'
-                    }`}>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-[#1E1E24] text-zinc-300 border-[#2A2A32]'
+                      }`}>
                       {p.badge}
                     </span>
                   </div>
@@ -603,15 +573,14 @@ export default function LandingPageView() {
                 <div className="pt-6 mt-6 border-t border-slate-100 dark:border-[#222228]">
                   <button
                     onClick={() => handleSelectPlan(p)}
-                    className={`w-full py-2.5 px-4 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
-                      isSelected
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : p.popular
-                          ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-emerald-500 hover:to-emerald-600 hover:shadow-emerald-500/25 text-white shadow-md shadow-amber-500/20 active:scale-98'
-                          : isLight
-                            ? 'bg-slate-100 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 text-slate-800 border border-slate-300 shadow-2xs hover:shadow-emerald-500/20'
-                            : 'bg-[#202026] hover:bg-emerald-600 hover:text-white hover:border-emerald-600 text-zinc-100 border border-[#2F2F38] shadow-2xs hover:shadow-emerald-500/20'
-                    }`}
+                    className={`w-full py-2.5 px-4 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${isSelected
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : p.popular
+                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-emerald-500 hover:to-emerald-600 hover:shadow-emerald-500/25 text-white shadow-md shadow-amber-500/20 active:scale-98'
+                        : isLight
+                          ? 'bg-slate-100 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 text-slate-800 border border-slate-300 shadow-2xs hover:shadow-emerald-500/20'
+                          : 'bg-[#202026] hover:bg-emerald-600 hover:text-white hover:border-emerald-600 text-zinc-100 border border-[#2F2F38] shadow-2xs hover:shadow-emerald-500/20'
+                      }`}
                   >
                     {isSelected ? 'Paket Aktif Saat Ini' : p.ctaText}
                   </button>
@@ -639,9 +608,8 @@ export default function LandingPageView() {
             return (
               <div
                 key={i}
-                className={`rounded-lg border overflow-hidden transition-all ${
-                  isLight ? 'bg-white border-slate-200 shadow-2xs' : 'bg-[#141417] border-[#24242A]'
-                }`}
+                className={`rounded-lg border overflow-hidden transition-all ${isLight ? 'bg-white border-slate-200 shadow-2xs' : 'bg-[#141417] border-[#24242A]'
+                  }`}
               >
                 <button
                   onClick={() => setFaqOpen(isOpen ? null : i)}
@@ -654,9 +622,8 @@ export default function LandingPageView() {
                   />
                 </button>
                 {isOpen && (
-                  <div className={`px-4 pb-4 text-xs leading-relaxed border-t pt-3 ${
-                    isLight ? 'border-slate-100 text-slate-600' : 'border-[#202026] text-zinc-400'
-                  }`}>
+                  <div className={`px-4 pb-4 text-xs leading-relaxed border-t pt-3 ${isLight ? 'border-slate-100 text-slate-600' : 'border-[#202026] text-zinc-400'
+                    }`}>
                     {faq.a}
                   </div>
                 )}
@@ -667,27 +634,25 @@ export default function LandingPageView() {
       </section>
 
       {/* Bottom CTA Banner */}
-      <section className={`p-8 sm:p-10 rounded-2xl border text-center space-y-4 max-w-4xl mx-auto relative overflow-hidden backdrop-blur-sm ${
-        isLight
-          ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-amber-200 shadow-lg shadow-amber-100/50'
-          : 'bg-gradient-to-br from-amber-500/10 via-white/[0.03] to-indigo-500/10 border-amber-500/20'
-      }`}>
+      <section className={`p-8 sm:p-10 rounded-2xl border text-center space-y-4 max-w-4xl mx-auto relative overflow-hidden backdrop-blur-sm ${isLight
+        ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-amber-200 shadow-lg shadow-amber-100/50'
+        : 'bg-gradient-to-br from-amber-500/10 via-white/[0.03] to-indigo-500/10 border-amber-500/20'
+        }`}>
         {/* CTA glow */}
-        <div className="glow-amber w-[400px] h-[200px] -top-10 left-1/2 -translate-x-1/2 opacity-60" style={{position:'absolute', zIndex:0}} />
+        <div className="glow-amber w-[400px] h-[200px] -top-10 left-1/2 -translate-x-1/2 opacity-60" style={{ position: 'absolute', zIndex: 0 }} />
         <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight relative">
           Siap Memaksimalkan Alur Kerja Anda Hari Ini?
         </h2>
-        <p className={`text-xs sm:text-sm max-w-xl mx-auto relative ${
-          isLight ? 'text-slate-600' : 'text-zinc-400'
-        }`}>
+        <p className={`text-xs sm:text-sm max-w-xl mx-auto relative ${isLight ? 'text-slate-600' : 'text-zinc-400'
+          }`}>
           Bergabung bersama ratusan kreator dan tim profesional yang mengelola proyek dengan efisiensi tingkat tinggi.
         </p>
         <div className="pt-2 relative">
           <button
-            onClick={() => setCurrentView('home')}
+            onClick={() => setCurrentView(user ? 'home' : 'auth')}
             className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-bold px-6 py-3 rounded-lg text-xs shadow-lg shadow-amber-500/30 transition-all active:scale-95 cursor-pointer hover:shadow-amber-500/40"
           >
-            <span>Masuk ke Dashboard Sekarang</span>
+            <span>{user ? 'Masuk ke Dashboard Sekarang' : 'Daftar & Masuk ke Dashboard'}</span>
             <ArrowRight size={15} />
           </button>
         </div>

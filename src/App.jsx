@@ -107,7 +107,14 @@ export default function App() {
           </div>
 
           <button
-            onClick={() => setCurrentView('landing')}
+            onClick={() => {
+              sessionStorage.removeItem('orvian_payment_success');
+              sessionStorage.removeItem('orvian_current_order_id');
+              sessionStorage.removeItem('orvian_payment_form');
+              sessionStorage.removeItem('orvian_wa_confirmed');
+              sessionStorage.removeItem('orvian_payment_unlocked');
+              setCurrentView('landing');
+            }}
             className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all ${
               isLight ? 'hover:bg-slate-100 text-slate-600 border-slate-200' : 'hover:bg-[#202026] text-zinc-400 border-[#2B2B33]'
             }`}
@@ -211,11 +218,49 @@ export default function App() {
                 Navigasi
               </h4>
               <ul className="space-y-1.5 text-[11px]">
-                <li><button onClick={() => setCurrentView('auth')} className="text-amber-500 font-bold hover:underline">Mulai Gratis (Sign Up)</button></li>
-                <li><button onClick={() => setCurrentView('home')} className="hover:text-amber-500 transition-colors">Dashboard Ringkasan</button></li>
-                <li><button onClick={() => setCurrentView('tasks')} className="hover:text-amber-500 transition-colors">Kanban Board & Tugas</button></li>
-                <li><button onClick={() => setCurrentView('calendar')} className="hover:text-amber-500 transition-colors">Kalender & Google Sync</button></li>
-                <li><button onClick={() => setCurrentView('notes')} className="hover:text-amber-500 transition-colors">Catatan & Ekspor Dokumen</button></li>
+                <li>
+                  {!user ? (
+                    <button onClick={() => setCurrentView('auth')} className="text-amber-500 font-bold hover:underline cursor-pointer">
+                      Mulai Gratis (Sign Up)
+                    </button>
+                  ) : (
+                    <button onClick={() => setCurrentView('home')} className="text-amber-500 font-bold hover:underline cursor-pointer">
+                      Dashboard Utama
+                    </button>
+                  )}
+                </li>
+                <li>
+                  <button
+                    onClick={() => setCurrentView(user ? 'home' : 'auth')}
+                    className="hover:text-amber-500 transition-colors cursor-pointer text-left"
+                  >
+                    Dashboard Ringkasan
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setCurrentView(user ? 'tasks' : 'auth')}
+                    className="hover:text-amber-500 transition-colors cursor-pointer text-left"
+                  >
+                    Kanban Board & Tugas
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setCurrentView(user ? 'calendar' : 'auth')}
+                    className="hover:text-amber-500 transition-colors cursor-pointer text-left"
+                  >
+                    Kalender & Google Sync
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setCurrentView(user ? 'notes' : 'auth')}
+                    className="hover:text-amber-500 transition-colors cursor-pointer text-left"
+                  >
+                    Catatan & Ekspor Dokumen
+                  </button>
+                </li>
               </ul>
             </div>
 

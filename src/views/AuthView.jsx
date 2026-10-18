@@ -35,6 +35,9 @@ export default function AuthView() {
     if (!supabase) return;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        if (window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('error'))) {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
         const u = session.user;
         const userData = {
           name: u.user_metadata?.full_name || u.user_metadata?.name || u.email.split('@')[0],
@@ -44,9 +47,9 @@ export default function AuthView() {
           registeredAt: u.created_at
         };
         loginUser(userData);
-        changePlan('Starter');
+        changePlan('Team');
         setSuccessMsg('Login berhasil! Mengalihkan ke dashboard...');
-        setTimeout(() => setCurrentView('home'), 800);
+        setTimeout(() => setCurrentView('home'), 400);
       }
     });
     return () => subscription.unsubscribe();
