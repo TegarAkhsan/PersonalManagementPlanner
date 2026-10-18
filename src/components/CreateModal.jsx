@@ -52,20 +52,27 @@ export default function CreateModal() {
 function CreateTaskForm({ onClose, isLight }) {
   const { addTask, projects } = useStorage();
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [projectId, setProjectId] = useState('');
   const [priority, setPriority] = useState('medium');
   const [dueDate, setDueDate] = useState('2026-10-04');
   const [status, setStatus] = useState('in_progress');
+  const [fee, setFee] = useState('');
+
+  const selectedProj = projects.find(p => p.id === projectId);
+  const isJokiProject = selectedProj && (selectedProj.isJoki || selectedProj.name.toLowerCase().includes('joki'));
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return;
     addTask({
       title,
+      description: description.trim(),
       projectId: projectId || null,
       priority,
       dueDate: dueDate || null,
-      status
+      status,
+      fee: isJokiProject ? (Number(fee) || 0) : 0
     });
     onClose();
   };
@@ -84,6 +91,17 @@ function CreateTaskForm({ onClose, isLight }) {
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Upload video ke TikTok"
           required
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label className={`block font-medium mb-1 ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>Description / Catatan Task</label>
+        <textarea
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Deskripsi detail pengerjaan, link referensi, catatan revisi, dll."
           className={inputClass}
         />
       </div>
@@ -119,6 +137,27 @@ function CreateTaskForm({ onClose, isLight }) {
           </select>
         </div>
       </div>
+
+      {/* Kolom Fee Khusus Task Joki */}
+      {isJokiProject && (
+        <div className={`p-3 rounded-lg border animate-in fade-in ${
+          isLight ? 'bg-amber-50/70 border-amber-300' : 'bg-amber-500/10 border-amber-500/30'
+        }`}>
+          <label className={`block font-bold mb-1 ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+            🎯 Fee Task Joki Ini (Rp)
+          </label>
+          <input
+            type="number"
+            value={fee}
+            onChange={(e) => setFee(e.target.value)}
+            placeholder="e.g. 150000"
+            className={inputClass}
+          />
+          <p className={`text-[10px] mt-1 ${isLight ? 'text-amber-700/80' : 'text-amber-300/70'}`}>
+            Fee pada task ini akan otomatis terkalkulasi ke Total Pendapatan Project Joki.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -171,11 +210,21 @@ function CreateProjectForm({ onClose, isLight }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('#F59E0B');
+  const [isJoki, setIsJoki] = useState(false);
+  const [fee, setFee] = useState('');
+  const [clientName, setClientName] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    addProject({ name, description, color });
+    addProject({
+      name: name.trim(),
+      description,
+      color,
+      isJoki,
+      fee: isJoki ? Number(fee) || 0 : 0,
+      clientName: isJoki ? clientName.trim() : ''
+    });
     onClose();
   };
 
@@ -190,20 +239,77 @@ function CreateProjectForm({ onClose, isLight }) {
         <input
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Launch Notion Template"
+          onChange={(e) => {
+            const val = e.target.value;
+            setName(val);
+            if (val.toLowerCase().includes('joki') && !isJoki) {
+              setIsJoki(true);
+            }
+          }}
+          placeholder="e.g. Joki Skripsi Client 1"
           required
           className={inputClass}
         />
       </div>
 
+      {/* Option: Tandai Sebagai Project Joki */}
+      <div className={`p-3 rounded-lg border flex items-center justify-between ${
+        isJoki
+          ? isLight ? 'bg-amber-50/70 border-amber-300' : 'bg-amber-500/10 border-amber-500/30'
+          : isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#191920] border-[#262630]'
+      }`}>
+        <div>
+          <span className={`font-semibold block ${isJoki ? 'text-amber-500' : isLight ? 'text-slate-700' : 'text-zinc-300'}`}>
+            Tandai sebagai Project Joki
+          </span>
+          <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
+            Aktifkan pencatatan Fee / Tarif dan perhitungan Total Pendapatan.
+          </p>
+        </div>
+        <input
+          type="checkbox"
+          checked={isJoki}
+          onChange={(e) => setIsJoki(e.target.checked)}
+          className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+        />
+      </div>
+
+      {isJoki && (
+        <div className="grid grid-cols-2 gap-3 animate-in fade-in">
+          <div>
+            <label className={`block font-medium mb-1 ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
+              Fee / Tarif Joki (Rp)
+            </label>
+            <input
+              type="number"
+              value={fee}
+              onChange={(e) => setFee(e.target.value)}
+              placeholder="e.g. 500000"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={`block font-medium mb-1 ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
+              Nama Klien / Pembeli
+            </label>
+            <input
+              type="text"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              placeholder="e.g. Client 1"
+              className={inputClass}
+            />
+          </div>
+        </div>
+      )}
+
       <div>
         <label className={`block font-medium mb-1 ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>Description</label>
         <textarea
-          rows={3}
+          rows={2}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Summary of goals and deliverables"
+          placeholder="Catatan / scope pengerjaan joki"
           className={inputClass}
         />
       </div>

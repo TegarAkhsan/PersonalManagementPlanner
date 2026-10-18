@@ -254,19 +254,66 @@ export function StorageProvider({ children }) {
         ]);
 
         // Reflect database truth: if Supabase returns array (even empty []), update state
-        if (pData) setProjects(pData);
+        if (pData) {
+          setProjects(pData.map(p => {
+            let desc = p.description || '';
+            let fee = 0;
+            let isJoki = false;
+            let clientName = '';
+            if (desc.includes('__META__')) {
+              try {
+                const parts = desc.split('__META__');
+                desc = parts[0].trim();
+                const meta = JSON.parse(parts[1]);
+                fee = Number(meta.fee) || 0;
+                isJoki = Boolean(meta.isJoki);
+                clientName = meta.clientName || '';
+              } catch (e) {
+                console.error('Failed to parse project meta', e);
+              }
+            }
+            return {
+              id: p.id,
+              name: p.name,
+              color: p.color,
+              description: desc,
+              status: p.status || 'active',
+              fee: p.fee !== undefined ? Number(p.fee) : fee,
+              isJoki: p.isJoki !== undefined ? Boolean(p.isJoki) : isJoki,
+              clientName: clientName
+            };
+          }));
+        }
         if (tData) {
-          setTasks(tData.map(t => ({
-            id: t.id,
-            title: t.title,
-            projectId: t.project_id,
-            status: t.status,
-            priority: t.priority,
-            dueDate: t.due_date,
-            sourceLabel: t.source_label,
-            createdAt: t.created_at,
-            completedAt: t.completed_at
-          })));
+          setTasks(tData.map(t => {
+            let desc = '';
+            let fee = 0;
+            let label = t.source_label || (t.project_id ? 'Project task' : 'Inbox');
+            if (t.source_label && t.source_label.includes('__DESC__')) {
+              try {
+                const parts = t.source_label.split('__DESC__');
+                label = parts[0].trim() || (t.project_id ? 'Project task' : 'Inbox');
+                const meta = JSON.parse(parts[1]);
+                desc = meta.desc || '';
+                fee = Number(meta.fee) || 0;
+              } catch (e) {
+                console.error('Failed to parse task desc', e);
+              }
+            }
+            return {
+              id: t.id,
+              title: t.title,
+              description: desc,
+              fee: t.fee !== undefined ? Number(t.fee) : fee,
+              projectId: t.project_id,
+              status: t.status,
+              priority: t.priority,
+              dueDate: t.due_date,
+              sourceLabel: label,
+              createdAt: t.created_at,
+              completedAt: t.completed_at
+            };
+          }));
         }
         if (eData) {
           setEvents(eData.map(e => ({
@@ -334,12 +381,17 @@ export function StorageProvider({ children }) {
       createdAt: new Date().toISOString().split('T')[0],
       completedAt: newTask.status === 'done' ? new Date().toISOString().split('T')[0] : null,
       sourceLabel: newTask.projectId ? 'Project task' : 'Inbox',
+      description: newTask.description || '',
+      fee: Number(newTask.fee) || 0,
       ...newTask
     };
     setTasks(prev => [item, ...prev]);
 
     if (supabase && isSupabaseConfigured) {
       try {
+        const meta = { desc: item.description || '', fee: item.fee || 0 };
+        const labelWithMeta = `${item.sourceLabel || ''}\n__DESC__${JSON.stringify(meta)}`;
+
         await supabase.from('tasks').insert([{
           id: item.id,
           title: item.title,
@@ -347,7 +399,7 @@ export function StorageProvider({ children }) {
           status: item.status || 'todo',
           priority: item.priority || 'Medium',
           due_date: item.dueDate || null,
-          source_label: item.sourceLabel || null,
+          source_label: labelWithMeta,
           created_at: item.createdAt,
           completed_at: item.completedAt
         }]);
@@ -375,12 +427,16 @@ export function StorageProvider({ children }) {
 
     if (supabase && isSupabaseConfigured && updatedItem) {
       try {
+        const meta = { desc: updatedItem.description || '', fee: Number(updatedItem.fee) || 0 };
+        const labelWithMeta = `${updatedItem.sourceLabel || ''}\n__DESC__${JSON.stringify(meta)}`;
+
         await supabase.from('tasks').update({
           title: updatedItem.title,
           project_id: updatedItem.projectId || null,
           status: updatedItem.status,
           priority: updatedItem.priority,
           due_date: updatedItem.dueDate || null,
+          source_label: labelWithMeta,
           completed_at: updatedItem.completedAt
         }).eq('id', id);
       } catch (e) {
@@ -544,21 +600,60 @@ export function StorageProvider({ children }) {
       id: `proj-${Date.now()}`,
       createdAt: new Date().toISOString().split('T')[0],
       status: 'active',
+      fee: Number(project.fee) || 0,
+      isJoki: Boolean(project.isJoki),
+      clientName: project.clientName || '',
       ...project
     };
     setProjects(prev => [...prev, item]);
 
     if (supabase && isSupabaseConfigured) {
       try {
+        const meta = { fee: item.fee, isJoki: item.isJoki, clientName: item.clientName };
+        const rawDesc = item.description || '';
+        const savedDescription = `${rawDesc}\n__META__${JSON.stringify(meta)}`;
+
         await supabase.from('projects').insert([{
           id: item.id,
           name: item.name,
-          description: item.description,
+          description: savedDescription,
           color: item.color,
           status: item.status
         }]);
       } catch (e) {
         console.error('Supabase addProject error:', e);
+      }
+    }
+  };
+
+  const updateProject = async (id, updates) => {
+    let updatedProj = null;
+    setProjects(prev => prev.map(p => {
+      if (p.id === id) {
+        updatedProj = { ...p, ...updates };
+        return updatedProj;
+      }
+      return p;
+    }));
+
+    if (supabase && isSupabaseConfigured && updatedProj) {
+      try {
+        const meta = {
+          fee: Number(updatedProj.fee) || 0,
+          isJoki: Boolean(updatedProj.isJoki),
+          clientName: updatedProj.clientName || ''
+        };
+        const rawDesc = updatedProj.description || '';
+        const savedDescription = `${rawDesc}\n__META__${JSON.stringify(meta)}`;
+
+        await supabase.from('projects').update({
+          name: updatedProj.name,
+          description: savedDescription,
+          color: updatedProj.color,
+          status: updatedProj.status
+        }).eq('id', id);
+      } catch (e) {
+        console.error('Supabase updateProject error:', e);
       }
     }
   };
@@ -870,6 +965,7 @@ export function StorageProvider({ children }) {
       archiveHabit,
       deleteHabit,
       addProject,
+      updateProject,
       deleteProject,
       addEvent,
       deleteEvent,

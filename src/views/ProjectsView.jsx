@@ -6,22 +6,68 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
-  ArrowUpRight
+  ArrowUpRight,
+  DollarSign,
+  TrendingUp,
+  Briefcase,
+  Edit2,
+  X,
+  Check
 } from 'lucide-react';
 import { useStorage } from '../context/StorageContext';
 
 export default function ProjectsView() {
-  const { projects, tasks, deleteProject, setCreateModalType, theme, currentPlan, setCurrentView } = useStorage();
+  const { projects, tasks, deleteProject, updateProject, setCreateModalType, theme, currentPlan, setCurrentView } = useStorage();
   const isLight = theme === 'light';
   const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id || null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [projectFilterTab, setProjectFilterTab] = useState('all'); // 'all' | 'joki' | 'internal'
+  const [editingFeeProjId, setEditingFeeProjId] = useState(null);
+  const [tempFee, setTempFee] = useState('');
 
   const activeProjects = projects.filter((p) => p.status !== 'archived');
+  
+  // Deteksi project joki (baik dari flag isJoki atau nama yang memuat kata 'joki')
+  const isProjectJoki = (p) => p.isJoki || p.name.toLowerCase().includes('joki');
+  
+  const jokiProjects = activeProjects.filter(isProjectJoki);
+  const internalProjects = activeProjects.filter((p) => !isProjectJoki(p));
+
+  const displayedProjects =
+    projectFilterTab === 'joki'
+      ? jokiProjects
+      : projectFilterTab === 'internal'
+      ? internalProjects
+      : activeProjects;
+
+  // Total Pendapatan dari project joki (termasuk fee level project dan akumulasi fee dari masing-masing task joki)
+  const getProjectTotalFee = (proj) => {
+    const projBaseFee = Number(proj.fee) || 0;
+    const taskFees = tasks
+      .filter((t) => t.projectId === proj.id)
+      .reduce((sum, t) => sum + (Number(t.fee) || 0), 0);
+    return projBaseFee + taskFees;
+  };
+
+  const totalRevenue = jokiProjects.reduce((sum, p) => sum + getProjectTotalFee(p), 0);
+  const completedJokiCount = jokiProjects.filter((p) => {
+    const pTasks = tasks.filter((t) => t.projectId === p.id);
+    return pTasks.length > 0 && pTasks.every((t) => t.status === 'done');
+  }).length;
+
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
   const projectTasks = tasks.filter((t) => t.projectId === selectedProjectId);
 
   const completedCount = projectTasks.filter((t) => t.status === 'done').length;
   const progressPct = projectTasks.length > 0 ? Math.round((completedCount / projectTasks.length) * 100) : 0;
+
+  const formatRupiah = (num) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0
+    }).format(num || 0);
+  };
 
   const handleCreateProjectClick = () => {
     if (currentPlan === 'Starter' && activeProjects.length >= 2) {
@@ -29,6 +75,14 @@ export default function ProjectsView() {
       return;
     }
     setCreateModalType('project');
+  };
+
+  const handleSaveFee = (proj) => {
+    updateProject(proj.id, {
+      fee: Number(tempFee) || 0,
+      isJoki: true
+    });
+    setEditingFeeProjId(null);
   };
 
   return (
@@ -77,7 +131,7 @@ export default function ProjectsView() {
             </span>
           </h2>
           <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
-            Manage and track milestones, deliverables, and team sprint tasks.
+            Kelola progress milestone, tasks pengerjaan, dan keuangan fee project joki Anda.
           </p>
         </div>
 
@@ -90,13 +144,115 @@ export default function ProjectsView() {
         </button>
       </div>
 
+      {/* Joki Revenue & Analytics Dashboard Card */}
+      <div className={`p-4 rounded-xl border grid grid-cols-1 md:grid-cols-3 gap-4 shadow-sm ${
+        isLight
+          ? 'bg-gradient-to-r from-amber-50/60 to-orange-50/40 border-amber-200'
+          : 'bg-gradient-to-r from-amber-500/10 via-[#18181D] to-[#141417] border-amber-500/30'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold">
+            <DollarSign size={22} />
+          </div>
+          <div>
+            <span className={`text-[11px] font-semibold uppercase tracking-wider block ${
+              isLight ? 'text-slate-500' : 'text-zinc-400'
+            }`}>
+              Total Pendapatan Joki
+            </span>
+            <h3 className={`text-xl font-extrabold font-mono mt-0.5 ${
+              isLight ? 'text-slate-900' : 'text-amber-400'
+            }`}>
+              {formatRupiah(totalRevenue)}
+            </h3>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold ${
+            isLight ? 'bg-blue-100 text-blue-600' : 'bg-blue-500/20 text-blue-400'
+          }`}>
+            <Briefcase size={20} />
+          </div>
+          <div>
+            <span className={`text-[11px] font-semibold uppercase tracking-wider block ${
+              isLight ? 'text-slate-500' : 'text-zinc-400'
+            }`}>
+              Jumlah Project Joki
+            </span>
+            <p className={`text-lg font-bold mt-0.5 ${isLight ? 'text-slate-800' : 'text-zinc-200'}`}>
+              {jokiProjects.length} <span className="text-xs font-normal text-slate-500">Klien</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold ${
+            isLight ? 'bg-emerald-100 text-emerald-600' : 'bg-emerald-500/20 text-emerald-400'
+          }`}>
+            <TrendingUp size={20} />
+          </div>
+          <div>
+            <span className={`text-[11px] font-semibold uppercase tracking-wider block ${
+              isLight ? 'text-slate-500' : 'text-zinc-400'
+            }`}>
+              Status Pengerjaan
+            </span>
+            <p className={`text-lg font-bold mt-0.5 ${isLight ? 'text-slate-800' : 'text-zinc-200'}`}>
+              {completedJokiCount}/{jokiProjects.length} Selesai
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Project Filter Tabs */}
+      <div className="flex items-center gap-2 border-b pb-2 text-xs">
+        <button
+          onClick={() => setProjectFilterTab('all')}
+          className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+            projectFilterTab === 'all'
+              ? 'bg-amber-500 text-white'
+              : isLight ? 'text-slate-600 hover:bg-slate-100' : 'text-zinc-400 hover:bg-[#1E1E24]'
+          }`}
+        >
+          Semua Proyek ({activeProjects.length})
+        </button>
+        <button
+          onClick={() => setProjectFilterTab('joki')}
+          className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
+            projectFilterTab === 'joki'
+              ? 'bg-amber-500 text-white'
+              : isLight ? 'text-slate-600 hover:bg-slate-100' : 'text-zinc-400 hover:bg-[#1E1E24]'
+          }`}
+        >
+          <span>🎯 Project Joki</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+            projectFilterTab === 'joki' ? 'bg-black/20 text-white' : 'bg-amber-500/20 text-amber-500'
+          }`}>
+            {jokiProjects.length}
+          </span>
+        </button>
+        <button
+          onClick={() => setProjectFilterTab('internal')}
+          className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
+            projectFilterTab === 'internal'
+              ? 'bg-amber-500 text-white'
+              : isLight ? 'text-slate-600 hover:bg-slate-100' : 'text-zinc-400 hover:bg-[#1E1E24]'
+          }`}
+        >
+          Proyek Internal / Umum ({internalProjects.length})
+        </button>
+      </div>
+
       {/* Projects Grid Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {activeProjects.map((proj) => {
+        {displayedProjects.map((proj) => {
           const pTasks = tasks.filter((t) => t.projectId === proj.id);
           const pDone = pTasks.filter((t) => t.status === 'done').length;
           const pPct = pTasks.length > 0 ? Math.round((pDone / pTasks.length) * 100) : 0;
           const isSelected = selectedProjectId === proj.id;
+          const isJoki = isProjectJoki(proj);
+          const isEditingFee = editingFeeProjId === proj.id;
 
           return (
             <div
@@ -113,11 +269,18 @@ export default function ProjectsView() {
               }`}
             >
               <div className="flex items-start justify-between mb-3">
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white shadow-inner"
-                  style={{ backgroundColor: proj.color || '#F59E0B' }}
-                >
-                  <FolderGit2 size={18} />
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white shadow-inner"
+                    style={{ backgroundColor: proj.color || '#F59E0B' }}
+                  >
+                    <FolderGit2 size={18} />
+                  </div>
+                  {isJoki && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                      JOKI
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={(e) => {
@@ -132,8 +295,61 @@ export default function ProjectsView() {
 
               <h3 className={`text-sm font-bold mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{proj.name}</h3>
               <p className={`text-xs line-clamp-2 mb-3 ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
-                {proj.description}
+                {proj.description || 'No description'}
               </p>
+
+              {/* Fee Section on Card: HANYA untuk Project Joki */}
+              {isJoki && (
+                <div className={`p-2 rounded-lg mb-3 flex items-center justify-between text-xs ${
+                  isLight ? 'bg-amber-50/60 border border-amber-200' : 'bg-amber-500/10 border border-amber-500/20'
+                }`} onClick={(e) => e.stopPropagation()}>
+                  <span className={`text-[11px] font-semibold ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                    Fee / Tarif Joki:
+                  </span>
+                  {isEditingFee ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        autoFocus
+                        value={tempFee}
+                        onChange={(e) => setTempFee(e.target.value)}
+                        placeholder="0"
+                        className="w-24 px-1.5 py-0.5 rounded border text-xs font-mono bg-white dark:bg-[#111115] text-slate-900 dark:text-white"
+                      />
+                      <button
+                        onClick={() => handleSaveFee(proj)}
+                        className="p-1 rounded bg-amber-500 text-white hover:bg-amber-400"
+                      >
+                        <Check size={12} />
+                      </button>
+                      <button
+                        onClick={() => setEditingFeeProjId(null)}
+                        className="p-1 rounded text-slate-400 hover:text-slate-600"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <span className={`font-bold font-mono ${
+                        Number(proj.fee) > 0 ? 'text-emerald-500 font-extrabold' : isLight ? 'text-slate-400' : 'text-zinc-500'
+                      }`}>
+                        {proj.fee ? formatRupiah(proj.fee) : 'Rp 0'}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setEditingFeeProjId(proj.id);
+                          setTempFee(proj.fee || '');
+                        }}
+                        className="p-0.5 rounded text-slate-400 hover:text-amber-500 transition-colors"
+                        title="Ubah Fee"
+                      >
+                        <Edit2 size={11} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className={`space-y-1.5 pt-2 border-t ${isLight ? 'border-slate-100' : 'border-[#202026]'}`}>
                 <div className="flex justify-between text-[11px]">
@@ -174,9 +390,14 @@ export default function ProjectsView() {
                 <h3 className={`text-base font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   {selectedProject.name}
                 </h3>
+                {(selectedProject.isJoki || selectedProject.name.toLowerCase().includes('joki')) && (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                    TARGET FEE: {formatRupiah(selectedProject.fee)}
+                  </span>
+                )}
               </div>
               <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
-                {selectedProject.description}
+                {selectedProject.description || 'No description'}
               </p>
             </div>
             <div className="flex items-center gap-3 mt-3 sm:mt-0">
@@ -228,6 +449,11 @@ export default function ProjectsView() {
                     </span>
                   </div>
                   <div className={`flex items-center gap-3 text-xs ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
+                    {Number(t.fee) > 0 && (
+                      <span className="font-mono font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded text-[11px] border border-emerald-500/20">
+                        {formatRupiah(t.fee)}
+                      </span>
+                    )}
                     <span className="capitalize">{t.status.replace('_', ' ')}</span>
                     <span className="font-mono text-[11px]">{t.dueDate || 'No date'}</span>
                   </div>

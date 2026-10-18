@@ -10,7 +10,9 @@ import {
   ChevronDown,
   ChevronUp,
   Tag,
-  Trash2
+  Trash2,
+  Edit2,
+  X
 } from 'lucide-react';
 import { useStorage } from '../context/StorageContext';
 
@@ -30,6 +32,7 @@ export default function TasksSection() {
   const isLight = theme === 'light';
   const [isSectionCollapsed, setIsSectionCollapsed] = useState(false);
   const [draggedTaskId, setDraggedTaskId] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
 
   const filterTabs = [
     'All Tasks',
@@ -294,6 +297,17 @@ export default function TasksSection() {
                                 </span>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
+                                    onClick={() => setEditingTask(task)}
+                                    className={`p-1 rounded ${
+                                      isLight
+                                        ? 'text-slate-400 hover:text-amber-600 hover:bg-slate-100'
+                                        : 'text-zinc-500 hover:text-amber-400 hover:bg-[#25252E]'
+                                    }`}
+                                    title="Edit task"
+                                  >
+                                    <Edit2 size={13} />
+                                  </button>
+                                  <button
                                     onClick={() => deleteTask(task.id)}
                                     className={`p-1 rounded ${
                                       isLight
@@ -325,15 +339,24 @@ export default function TasksSection() {
                                     <Circle size={16} />
                                   )}
                                 </button>
-                                <p
-                                  className={`text-xs font-medium leading-snug flex-1 ${
-                                    isDone
-                                      ? isLight ? 'line-through text-slate-400' : 'line-through text-zinc-500'
-                                      : isLight ? 'text-slate-800 group-hover:text-amber-700' : 'text-zinc-100 group-hover:text-amber-300'
-                                  }`}
-                                >
-                                  {task.title}
-                                </p>
+                                <div className="flex-1 min-w-0">
+                                  <p
+                                    className={`text-xs font-medium leading-snug ${
+                                      isDone
+                                        ? isLight ? 'line-through text-slate-400' : 'line-through text-zinc-500'
+                                        : isLight ? 'text-slate-800 group-hover:text-amber-700' : 'text-zinc-100 group-hover:text-amber-300'
+                                    }`}
+                                  >
+                                    {task.title}
+                                  </p>
+                                  {task.description && (
+                                    <p className={`text-[11px] mt-1 line-clamp-2 leading-relaxed ${
+                                      isLight ? 'text-slate-500' : 'text-zinc-400'
+                                    }`}>
+                                      {task.description}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
 
                               {/* Card Footer: Due Date & Priority */}
@@ -350,7 +373,14 @@ export default function TasksSection() {
                                       : 'No date'}
                                   </span>
                                 </div>
-                                <div>{getPriorityBadge(task.priority)}</div>
+                                <div className="flex items-center gap-1.5">
+                                  {Number(task.fee) > 0 && (
+                                    <span className="font-mono font-bold text-[10px] text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                      Rp {Number(task.fee).toLocaleString('id-ID')}
+                                    </span>
+                                  )}
+                                  {getPriorityBadge(task.priority)}
+                                </div>
                               </div>
                             </div>
                           );
@@ -447,14 +477,26 @@ export default function TasksSection() {
                             : 'No date'}
                         </td>
                         <td className="py-3 px-3 text-right">
-                          <button
-                            onClick={() => deleteTask(task.id)}
-                            className={`p-1 rounded ${
-                              isLight ? 'text-slate-400 hover:text-rose-600 hover:bg-slate-100' : 'text-zinc-500 hover:text-rose-400 hover:bg-[#25252E]'
-                            }`}
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => setEditingTask(task)}
+                              className={`p-1 rounded ${
+                                isLight ? 'text-slate-400 hover:text-amber-600 hover:bg-slate-100' : 'text-zinc-500 hover:text-amber-400 hover:bg-[#25252E]'
+                              }`}
+                              title="Edit task"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => deleteTask(task.id)}
+                              className={`p-1 rounded ${
+                                isLight ? 'text-slate-400 hover:text-rose-600 hover:bg-slate-100' : 'text-zinc-500 hover:text-rose-400 hover:bg-[#25252E]'
+                              }`}
+                              title="Delete task"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -465,6 +507,197 @@ export default function TasksSection() {
           )}
         </>
       )}
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          projects={projects}
+          isLight={isLight}
+          onClose={() => setEditingTask(null)}
+          onSave={(updates) => {
+            updateTask(editingTask.id, updates);
+            setEditingTask(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditTaskModal({ task, projects, isLight, onClose, onSave }) {
+  const [title, setTitle] = useState(task.title || '');
+  const [description, setDescription] = useState(task.description || '');
+  const [projectId, setProjectId] = useState(task.projectId || '');
+  const [priority, setPriority] = useState(task.priority || 'Medium');
+  const [dueDate, setDueDate] = useState(task.dueDate || '');
+  const [status, setStatus] = useState(task.status || 'in_progress');
+  const [fee, setFee] = useState(task.fee || '');
+
+  const selectedProj = projects.find(p => p.id === projectId);
+  const isJokiProject = selectedProj && (selectedProj.isJoki || selectedProj.name.toLowerCase().includes('joki'));
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    onSave({
+      title: title.trim(),
+      description: description.trim(),
+      projectId: projectId || null,
+      priority,
+      dueDate: dueDate || null,
+      status,
+      fee: isJokiProject ? (Number(fee) || 0) : 0
+    });
+  };
+
+  const inputClass = `w-full rounded-lg p-2.5 border text-xs focus:outline-none focus:border-amber-500 ${
+    isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-[#1A1A20] border-[#2B2B34] text-white'
+  }`;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className={`w-full max-w-lg rounded-xl shadow-2xl p-6 relative animate-in fade-in zoom-in-95 duration-150 border ${
+        isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#141417] border-[#2B2B34] text-zinc-100'
+      }`}>
+        <div className={`flex items-center justify-between pb-3 mb-4 border-b ${
+          isLight ? 'border-slate-100' : 'border-[#24242A]'
+        }`}>
+          <h3 className={`text-sm font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            Edit Task
+          </h3>
+          <button
+            onClick={onClose}
+            className={`p-1 rounded transition-colors ${
+              isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-zinc-400 hover:text-white hover:bg-[#202026]'
+            }`}
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <div>
+            <label className={`block font-medium mb-1 ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>Task Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Upload video ke TikTok"
+              required
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className={`block font-medium mb-1 ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>Description / Catatan Task</label>
+            <textarea
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Deskripsi detail pengerjaan, link referensi, catatan revisi, dll."
+              className={inputClass}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={`block font-medium mb-1 ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>Project</label>
+              <select
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">No Project (Unrelated / Inbox)</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={`block font-medium mb-1 ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>Status Column</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className={inputClass}
+              >
+                <option value="ready_to_start">Ready To Start</option>
+                <option value="in_progress">In Progress</option>
+                <option value="review">Review</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Kolom Fee Khusus Task Joki */}
+          {isJokiProject && (
+            <div className={`p-3 rounded-lg border animate-in fade-in ${
+              isLight ? 'bg-amber-50/70 border-amber-300' : 'bg-amber-500/10 border-amber-500/30'
+            }`}>
+              <label className={`block font-bold mb-1 ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                🎯 Fee Task Joki Ini (Rp)
+              </label>
+              <input
+                type="number"
+                value={fee}
+                onChange={(e) => setFee(e.target.value)}
+                placeholder="e.g. 150000"
+                className={inputClass}
+              />
+              <p className={`text-[10px] mt-1 ${isLight ? 'text-amber-700/80' : 'text-amber-300/70'}`}>
+                Fee pada task ini akan otomatis terkalkulasi ke Total Pendapatan Project Joki.
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={`block font-medium mb-1 ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                className={inputClass}
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+
+            <div>
+              <label className={`block font-medium mb-1 ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>Due Date</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <div className={`flex justify-end gap-2 pt-3 border-t ${isLight ? 'border-slate-100' : 'border-[#24242A]'}`}>
+            <button
+              type="button"
+              onClick={onClose}
+              className={`px-4 py-2 rounded-lg font-medium border ${
+                isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-[#202026] text-zinc-300 border-[#2D2D35]'
+              }`}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-bold"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
