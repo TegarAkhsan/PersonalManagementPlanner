@@ -16,8 +16,8 @@ export default function CreateModal() {
   const closeModal = () => setCreateModalType(null);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className={`w-full max-w-lg rounded-xl shadow-2xl p-6 relative animate-in fade-in zoom-in-95 duration-150 border ${
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+      <div className={`w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl p-4 sm:p-6 relative animate-in fade-in zoom-in-95 duration-150 border ${
         isLight
           ? 'bg-white border-slate-200 text-slate-800'
           : 'bg-[#141417] border-[#2B2B34] text-zinc-100'

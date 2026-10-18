@@ -512,7 +512,7 @@ export default function LandingPageView() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch relative">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 max-w-6xl mx-auto items-stretch relative">
           {plans.map((p) => {
             // Only show 'Paket Aktif Saat Ini' if user is currently logged in!
             const isSelected = Boolean(user && currentPlan === p.id);
@@ -521,13 +521,13 @@ export default function LandingPageView() {
             return (
               <div
                 key={p.id}
-                className={`rounded-xl p-6 border flex flex-col justify-between transition-all duration-200 relative backdrop-blur-sm ${p.highlightBorder
-                  } ${isLight ? 'bg-white/80' : 'bg-white/5'
+                className={`rounded-2xl p-6 sm:p-7 border flex flex-col justify-between transition-all duration-200 relative backdrop-blur-md shadow-xl ${p.highlightBorder
+                  } ${isLight ? 'bg-white shadow-slate-200/50' : 'bg-[#15151A] shadow-black/50'
                   } ${p.popular ? 'ring-2 ring-amber-500 scale-[1.02]' : 'hover:scale-[1.01]'
                   }`}
               >
                 {p.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-amber-500 text-white shadow-md">
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500 text-white shadow-lg shadow-amber-500/30">
                     Rekomendasi Utama
                   </div>
                 )}
@@ -563,8 +563,9 @@ export default function LandingPageView() {
 
                   <ul className="space-y-2.5 mt-5">
                     {p.features.map((feat, idx) => (
-                      <li key={idx} className="text-xs text-slate-700 dark:text-zinc-300">
-                        <span>{feat}</span>
+                      <li key={idx} className="text-xs flex items-start gap-2 text-slate-700 dark:text-zinc-200">
+                        <Check size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                        <span className="leading-tight">{feat}</span>
                       </li>
                     ))}
                   </ul>

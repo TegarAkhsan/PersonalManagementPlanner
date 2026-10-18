@@ -67,7 +67,12 @@ export function StorageProvider({ children }) {
 
   const [activeTaskFilter, setActiveTaskFilter] = useState('All Tasks');
   const [taskViewMode, setTaskViewMode] = useState('board'); // 'board' or 'list'
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024;
+    }
+    return true;
+  });
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [createModalType, setCreateModalType] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -131,9 +136,10 @@ export function StorageProvider({ children }) {
       }
     };
 
-    // Check existing active session on mount
+    // Check existing active session on mount to sync user data, WITHOUT hijacking currentView
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        const isFreshOAuthRedirect = window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token'));
         cleanAuthHash();
         const u = session.user;
         const userData = {
@@ -145,12 +151,16 @@ export function StorageProvider({ children }) {
         };
         loginUser(userData);
         changePlan('Team');
-        setCurrentView('home');
+        // Only redirect to home if this was an active OAuth callback redirect (containing access_token)
+        if (isFreshOAuthRedirect) {
+          setCurrentView('home');
+        }
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        const isFreshOAuthRedirect = window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token'));
         cleanAuthHash();
         const u = session.user;
         const userData = {
@@ -162,7 +172,10 @@ export function StorageProvider({ children }) {
         };
         loginUser(userData);
         changePlan('Team');
-        setCurrentView('home');
+        // Only redirect if explicitly coming back from OAuth redirect or explicitly signed in from auth page
+        if (isFreshOAuthRedirect) {
+          setCurrentView('home');
+        }
       }
     });
 

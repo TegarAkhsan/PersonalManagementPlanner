@@ -80,7 +80,11 @@ export default function Sidebar() {
         isLight
           ? 'bg-[#FFFFFF] border-slate-200 text-slate-800'
           : 'bg-[#121215] border-[#26262B] text-zinc-100'
-      } ${isSidebarOpen ? 'w-64' : 'w-20'}`}
+      } ${
+        isSidebarOpen
+          ? 'translate-x-0 w-64'
+          : '-translate-x-full lg:translate-x-0 lg:w-20 w-64'
+      }`}
     >
       {/* Brand Header */}
       <div className={`h-16 flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} border-b ${

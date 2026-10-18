@@ -60,13 +60,13 @@ export default function TopBar() {
   const isLight = theme === 'light';
 
   return (
-    <header className={`h-16 border-b transition-colors duration-200 px-6 flex items-center justify-between sticky top-0 z-30 ${
+    <header className={`h-16 border-b transition-colors duration-200 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 ${
       isLight
         ? 'border-slate-200 bg-white/80 backdrop-blur-md'
         : 'border-[#26262B] bg-[#0E0E11]/90 backdrop-blur-md'
     }`}>
       {/* Left: Mobile hamburger menu toggle & Global Command Search Bar */}
-      <div className="flex items-center gap-2 sm:gap-3 w-full max-w-md">
+      <div className="flex items-center gap-1.5 sm:gap-3 flex-1 max-w-md min-w-0 mr-2 sm:mr-4">
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className={`lg:hidden p-2 rounded-lg border transition-colors cursor-pointer ${
@@ -87,11 +87,12 @@ export default function TopBar() {
               : 'bg-[#18181C] border-[#2B2B32] hover:border-zinc-500 text-zinc-400'
           }`}
         >
-          <Search size={16} className={`transition-colors ${
+          <Search size={16} className={`flex-shrink-0 transition-colors ${
             isLight ? 'text-slate-400 group-hover:text-amber-500' : 'text-zinc-500 group-hover:text-amber-400'
           }`} />
-          <span className={`text-xs flex-1 ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
-            Search projects, tasks, habits...
+          <span className={`text-xs flex-1 truncate ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
+            <span className="hidden sm:inline">Search projects, tasks, habits...</span>
+            <span className="sm:hidden">Cari...</span>
           </span>
           <kbd className={`hidden sm:inline-flex items-center gap-0.5 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border ${
             isLight
@@ -104,7 +105,7 @@ export default function TopBar() {
       </div>
 
       {/* Right Tools: Theme Toggle, Live Clock & Layout Controls */}
-      <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
         {/* Soft Light / Dark Theme Switcher Button */}
         <button
           onClick={toggleTheme}
