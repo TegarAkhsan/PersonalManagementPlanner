@@ -213,12 +213,6 @@ export default function LandingPageView() {
                   app.orvian.id/workspace
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-500">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                  Supabase Realtime Sync
-                </span>
-              </div>
             </div>
 
             {/* Inner Dashboard Preview Content */}
@@ -316,8 +310,10 @@ export default function LandingPageView() {
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-500 flex items-center justify-center font-bold">
               <Layers size={22} />
             </div>
-            <h3 className="text-base font-bold tracking-tight">1. Satukan Seluruh Alur Kerja (All-In-One)</h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+            <h3 className={`text-base font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              1. Satukan Seluruh Alur Kerja (All-In-One)
+            </h3>
+            <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
               Hentikan kebiasaan berganti 4–5 aplikasi terpisah (Trello, Notion, Habit Tracker, Kalender). Di Orvian, proyek, tugas, habit, dokumen, dan kalender tersinkron dalam satu dasbor terpadu.
             </p>
             <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-amber-500">
@@ -333,8 +329,10 @@ export default function LandingPageView() {
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 flex items-center justify-center font-bold">
               <CheckSquare size={22} />
             </div>
-            <h3 className="text-base font-bold tracking-tight">2. Manajemen Proyek Kanban & Agile</h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+            <h3 className={`text-base font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              2. Manajemen Proyek Kanban & Agile
+            </h3>
+            <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
               Pindahkan tugas secara fleksibel (<span className="italic">Ready to Start, In Progress, Review, Done</span>), lengkapi dengan deadline, tags warna, tingkat prioritas (<span className="italic">Urgent/Medium/Low</span>), dan sub-tugas detail.
             </p>
             <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-emerald-500">
@@ -350,8 +348,10 @@ export default function LandingPageView() {
             <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/25 text-orange-500 flex items-center justify-center font-bold">
               <Flame size={22} />
             </div>
-            <h3 className="text-base font-bold tracking-tight">3. Pelacak Kebiasaan & Streak Gamifikasi</h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+            <h3 className={`text-base font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              3. Pelacak Kebiasaan & Streak Gamifikasi
+            </h3>
+            <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
               Bentuk rutinitas positif tanpa putus dengan sistem heatmap bulanan interaktif, penghitung rekor konsistensi (<span className="italic">streak</span>), dan checklist rutinitas harian yang memotivasi setiap pagi.
             </p>
             <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-orange-500">
@@ -367,11 +367,13 @@ export default function LandingPageView() {
             <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/25 text-indigo-500 flex items-center justify-center font-bold">
               <Database size={22} />
             </div>
-            <h3 className="text-base font-bold tracking-tight">4. Ekstraksi Dokumen & Ekspor Instan (PDF & DOCX)</h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+            <h3 className={`text-base font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              4. Ekstraksi Dokumen & Ekspor Instan (PDF & DOCX)
+            </h3>
+            <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
               Ubah catatan braindump, laporan sprint, dan brief proyek menjadi dokumen rapi siap cetak dan siap bagikan dalam format Microsoft Word (.docx) serta PDF berkualitas tinggi.
             </p>
-            <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-500">
+            <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-400">
               <CheckCircle2 size={14} /> Ekspor 1-Klik ke PDF & DOCX
             </div>
           </div>
@@ -381,14 +383,16 @@ export default function LandingPageView() {
             ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
             : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-sky-500/40'
             }`}>
-            <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/25 text-sky-500 flex items-center justify-center font-bold">
+            <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/25 text-sky-400 flex items-center justify-center font-bold">
               <Calendar size={22} />
             </div>
-            <h3 className="text-base font-bold tracking-tight">5. Kalender Agenda & Google Calendar Sync</h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+            <h3 className={`text-base font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              5. Kalender Agenda & Google Calendar Sync
+            </h3>
+            <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
               Jadwalkan rapat, sesi deep work, dan deadline proyek dengan presisi. Dilengkapi fitur unduh file (.ics) otomatis yang langsung tersinkron masuk ke Google Calendar di HP & Laptop Anda.
             </p>
-            <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-sky-500">
+            <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-sky-400">
               <CheckCircle2 size={14} /> Sinkronisasi Otomatis Google Calendar
             </div>
           </div>
@@ -398,14 +402,16 @@ export default function LandingPageView() {
             ? 'bg-white border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.08)]'
             : 'bg-[#15151A] border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-purple-500/40'
             }`}>
-            <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/25 text-purple-500 flex items-center justify-center font-bold">
+            <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/25 text-purple-400 flex items-center justify-center font-bold">
               <BarChart2 size={22} />
             </div>
-            <h3 className="text-base font-bold tracking-tight">6. Analitik Performa & Invoice Generator Otomatis</h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+            <h3 className={`text-base font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              6. Analitik Performa & Invoice Generator Otomatis
+            </h3>
+            <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
               Pantau rasio penyelesaian tugas dan produktivitas mingguan dalam grafik visual. Dilengkapi generator invoice resmi siap unduh PDF dan pembayaran QRIS instan.
             </p>
-            <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-purple-500">
+            <div className="pt-2 flex items-center gap-1.5 text-[11px] font-bold text-purple-400">
               <CheckCircle2 size={14} /> Evaluasi objektif setiap akhir pekan
             </div>
           </div>
@@ -417,33 +423,35 @@ export default function LandingPageView() {
           : 'bg-[#141418] border-white/10 shadow-[0_10px_35px_rgb(0,0,0,0.4)]'
           }`}>
           <div className="text-center max-w-xl mx-auto mb-8">
-            <h3 className="text-2xl sm:text-3xl font-black mt-2.5 tracking-tight">Mengapa Beralih ke Orvian?</h3>
+            <h3 className={`text-2xl sm:text-3xl font-black mt-2.5 tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              Mengapa Beralih ke Orvian?
+            </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             {/* Box Tanpa Orvian */}
-            <div className={`p-6 rounded-2xl border space-y-4 flex flex-col justify-between ${isLight ? 'bg-rose-50/40 border-rose-200 text-slate-700' : 'bg-rose-950/20 border-rose-900/30 text-zinc-300'
+            <div className={`p-6 rounded-2xl border space-y-4 flex flex-col justify-between ${isLight ? 'bg-rose-50/40 border-rose-200 text-slate-800' : 'bg-rose-950/25 border-rose-900/40 text-zinc-100'
               }`}>
               <div>
-                <div className="flex items-center gap-2 text-rose-500 font-bold text-sm mb-3">
-                  <span className="w-6 h-6 rounded-full bg-rose-500/20 flex items-center justify-center text-xs">✕</span>
-                  <span>Cara Lama Tanpa Orvian</span>
+                <div className="flex items-center gap-2 text-rose-400 font-bold text-sm mb-3">
+                  <span className="w-6 h-6 rounded-full bg-rose-500/20 flex items-center justify-center text-xs text-rose-300">✕</span>
+                  <span className="text-rose-400 font-extrabold">Cara Lama Tanpa Orvian</span>
                 </div>
-                <ul className="space-y-3 text-xs text-slate-600 dark:text-zinc-400">
+                <ul className={`space-y-3 text-xs leading-relaxed ${isLight ? 'text-slate-700' : 'text-zinc-200'}`}>
                   <li className="flex items-start gap-2.5">
-                    <span className="text-rose-500 font-bold shrink-0">•</span>
+                    <span className="text-rose-400 font-bold shrink-0">•</span>
                     <span>Tugas tersebar di chat WhatsApp, sticky note meja, dan berbagai spreadsheet yang tercecer.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="text-rose-500 font-bold shrink-0">•</span>
+                    <span className="text-rose-400 font-bold shrink-0">•</span>
                     <span>Sering terdistraksi dan lupa deadline penting karena tidak ada prioritas visual yang jelas.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="text-rose-500 font-bold shrink-0">•</span>
+                    <span className="text-rose-400 font-bold shrink-0">•</span>
                     <span>Habit tracking sering bolong setelah 3 hari karena tidak ada motivasi gamifikasi & streak.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="text-rose-500 font-bold shrink-0">•</span>
+                    <span className="text-rose-400 font-bold shrink-0">•</span>
                     <span>Biaya langganan terpisah-pisah untuk to-do list, calendar app, dan note-taking berbiaya mahal.</span>
                   </li>
                 </ul>
@@ -451,28 +459,28 @@ export default function LandingPageView() {
             </div>
 
             {/* Box Dengan Orvian */}
-            <div className={`p-6 rounded-2xl border space-y-4 flex flex-col justify-between ${isLight ? 'bg-emerald-50/50 border-emerald-300 text-slate-800' : 'bg-emerald-950/25 border-emerald-800/40 text-zinc-200'
+            <div className={`p-6 rounded-2xl border space-y-4 flex flex-col justify-between ${isLight ? 'bg-emerald-50/50 border-emerald-300 text-slate-900' : 'bg-emerald-950/30 border-emerald-800/50 text-white'
               }`}>
               <div>
-                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm mb-3">
-                  <span className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">✓</span>
-                  <span>Dengan Sistem Terpadu Orvian</span>
+                <div className="flex items-center gap-2 font-bold text-sm mb-3">
+                  <span className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs text-emerald-400">✓</span>
+                  <span className="text-emerald-400 font-extrabold">Dengan Sistem Terpadu Orvian</span>
                 </div>
-                <ul className="space-y-3 text-xs text-slate-700 dark:text-zinc-300 font-medium">
+                <ul className={`space-y-3 text-xs leading-relaxed font-medium ${isLight ? 'text-slate-800' : 'text-zinc-100'}`}>
                   <li className="flex items-start gap-2.5">
-                    <span className="text-emerald-500 font-bold shrink-0">✓</span>
+                    <span className="text-emerald-400 font-bold shrink-0 text-sm">✓</span>
                     <span>Semua proyek, tugas harian, catatan dokumen, dan kalender tersinkron rapi dalam 1 layar.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="text-emerald-500 font-bold shrink-0">✓</span>
+                    <span className="text-emerald-400 font-bold shrink-0 text-sm">✓</span>
                     <span>Fokus tajam dengan board Kanban drag-and-drop dan filter prioritas tinggi (Urgent/Medium).</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="text-emerald-500 font-bold shrink-0">✓</span>
+                    <span className="text-emerald-400 font-bold shrink-0 text-sm">✓</span>
                     <span>Rutinitas konsisten dengan heatmap otomatis, streak harian, dan notifikasi pencapaian target.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="text-emerald-500 font-bold shrink-0">✓</span>
+                    <span className="text-emerald-400 font-bold shrink-0 text-sm">✓</span>
                     <span>Hemat biaya, penyimpanan cloud terenkripsi aman, serta akses cepat tanpa jeda (*zero lag*).</span>
                   </li>
                 </ul>
@@ -534,28 +542,32 @@ export default function LandingPageView() {
 
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-lg font-bold">{p.name}</h3>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-[#1E1E24] text-zinc-300 border-[#2A2A32]'
+                    <h3 className={`text-lg font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                      {p.name}
+                    </h3>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-[#1E1E24] text-zinc-200 border-[#2A2A32]'
                       }`}>
                       {p.badge}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2 min-h-[32px]">
+                  <p className={`text-xs mt-2 min-h-[32px] leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
                     {p.description}
                   </p>
 
-                  <div className="mt-4 pb-4 border-b border-slate-100 dark:border-[#222228]">
+                  <div className={`mt-4 pb-4 border-b ${isLight ? 'border-slate-100' : 'border-[#222228]'}`}>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-extrabold">
+                      <span className={`text-3xl font-extrabold ${isLight ? 'text-slate-900' : 'text-white'}`}>
                         {price === 0 ? 'Gratis' : `Rp ${price.toLocaleString('id-ID')}`}
                       </span>
                       {price > 0 && (
-                        <span className="text-xs text-slate-400 font-medium">/bulan</span>
+                        <span className={`text-xs font-medium ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
+                          /bulan
+                        </span>
                       )}
                     </div>
                     {billingCycle === 'yearly' && price > 0 && (
-                      <p className="text-[10px] text-emerald-500 font-medium mt-0.5">
+                      <p className="text-[10px] text-emerald-400 font-medium mt-0.5">
                         Ditagih tahunan (hemat 20%)
                       </p>
                     )}
@@ -563,7 +575,7 @@ export default function LandingPageView() {
 
                   <ul className="space-y-2.5 mt-5">
                     {p.features.map((feat, idx) => (
-                      <li key={idx} className="text-xs flex items-start gap-2 text-slate-700 dark:text-zinc-200">
+                      <li key={idx} className={`text-xs flex items-start gap-2.5 font-medium ${isLight ? 'text-slate-700' : 'text-zinc-200'}`}>
                         <Check size={14} className="text-amber-500 shrink-0 mt-0.5" />
                         <span className="leading-tight">{feat}</span>
                       </li>
