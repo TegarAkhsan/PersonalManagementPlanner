@@ -42,19 +42,17 @@ export default function SettingsView() {
     changePlan,
     setCurrentView,
     startCheckout,
-    user
+    user,
+    isAdmin
   } = useStorage();
 
   const isLight = theme === 'light';
 
   // Check if current user is admin
+  const ADMIN_EMAILS = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
   const isAdminUser = Boolean(
-    user?.role === 'admin' ||
-    user?.email?.toLowerCase().includes('admin') ||
-    user?.email?.toLowerCase() === 'tegarakhsan@gmail.com' ||
-    user?.email?.toLowerCase() === 'tegarrigger@gmail.com' ||
-    localStorage.getItem('orvian_is_admin') === 'true' ||
-    localStorage.getItem('projectflow_user_role') === 'admin'
+    isAdmin ||
+    (user && (user.role === 'admin' || ADMIN_EMAILS.includes((user.email || '').toLowerCase().trim())))
   );
 
   // User notification & preference states (persisted in local storage)

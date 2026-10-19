@@ -82,17 +82,37 @@ export function StorageProvider({ children }) {
     return localStorage.getItem('projectflow_plan') || 'Team';
   });
 
+  // Daftar email master admin resmi
+  const ADMIN_EMAILS = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
+
+  const checkIsAdmin = (u) => {
+    if (!u) return false;
+    const email = (u.email || '').toLowerCase().trim();
+    if (ADMIN_EMAILS.includes(email)) return true;
+    if (u.role === 'admin') return true;
+    return false;
+  };
+
   // Authenticated user state
   const [user, setUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem('orvian_user');
       if (savedUser) {
         const parsed = JSON.parse(savedUser);
-        const emailLower = (parsed.email || '').toLowerCase();
-        if (emailLower === 'tegarrigger@gmail.com' || emailLower === 'tegarakhsan@gmail.com' || emailLower.includes('admin')) {
+        const emailLower = (parsed.email || '').toLowerCase().trim();
+        if (ADMIN_EMAILS.includes(emailLower)) {
           parsed.role = 'admin';
           localStorage.setItem('orvian_is_admin', 'true');
           localStorage.setItem('projectflow_user_role', 'admin');
+        } else {
+          // Pastikan user biasa memiliki role 'user' dan flag admin dibersihkan
+          if (parsed.role === 'admin' && !ADMIN_EMAILS.includes(emailLower)) {
+            parsed.role = 'user';
+          } else if (!parsed.role) {
+            parsed.role = 'user';
+          }
+          localStorage.removeItem('orvian_is_admin');
+          localStorage.setItem('projectflow_user_role', parsed.role);
         }
         return parsed;
       }
@@ -102,12 +122,20 @@ export function StorageProvider({ children }) {
     }
   });
 
+  const isAdmin = checkIsAdmin(user);
+
   const loginUser = (userData) => {
-    const emailLower = (userData?.email || '').toLowerCase();
-    if (emailLower === 'tegarrigger@gmail.com' || emailLower === 'tegarakhsan@gmail.com' || emailLower.includes('admin')) {
+    const emailLower = (userData?.email || '').toLowerCase().trim();
+    const isMasterAdmin = ADMIN_EMAILS.includes(emailLower);
+
+    if (isMasterAdmin) {
       userData.role = 'admin';
       localStorage.setItem('orvian_is_admin', 'true');
       localStorage.setItem('projectflow_user_role', 'admin');
+    } else {
+      userData.role = userData.role || 'user';
+      localStorage.removeItem('orvian_is_admin');
+      localStorage.setItem('projectflow_user_role', userData.role);
     }
     setUser(userData);
     localStorage.setItem('orvian_user', JSON.stringify(userData));
@@ -116,6 +144,8 @@ export function StorageProvider({ children }) {
   const logoutUser = async () => {
     setUser(null);
     localStorage.removeItem('orvian_user');
+    localStorage.removeItem('orvian_is_admin');
+    localStorage.removeItem('projectflow_user_role');
     if (supabase) {
       try {
         await supabase.auth.signOut();
@@ -136,7 +166,7 @@ export function StorageProvider({ children }) {
       }
     };
 
-    // Check existing active session on mount to sync user data, WITHOUT hijacking currentView
+    // Sync Supabase Auth session globally (useful for Google OAuth redirect)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const isFreshOAuthRedirect = window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token'));
@@ -150,7 +180,11 @@ export function StorageProvider({ children }) {
           registeredAt: u.created_at
         };
         loginUser(userData);
-        changePlan('Team');
+        if (ADMIN_EMAILS.includes((u.email || '').toLowerCase().trim())) {
+          changePlan('Team');
+        } else if (!localStorage.getItem('projectflow_plan')) {
+          changePlan('Starter');
+        }
         // Only redirect to home if this was an active OAuth callback redirect (containing access_token)
         if (isFreshOAuthRedirect) {
           setCurrentView('home');
@@ -171,7 +205,11 @@ export function StorageProvider({ children }) {
           registeredAt: u.created_at
         };
         loginUser(userData);
-        changePlan('Team');
+        if (ADMIN_EMAILS.includes((u.email || '').toLowerCase().trim())) {
+          changePlan('Team');
+        } else if (!localStorage.getItem('projectflow_plan')) {
+          changePlan('Starter');
+        }
         // Only redirect if explicitly coming back from OAuth redirect or explicitly signed in from auth page
         if (isFreshOAuthRedirect) {
           setCurrentView('home');
@@ -963,6 +1001,7 @@ export function StorageProvider({ children }) {
       currentPlan,
       changePlan,
       user,
+      isAdmin,
       loginUser,
       logoutUser,
       checkoutData,

@@ -32,20 +32,18 @@ export default function Sidebar() {
     currentPlan,
     supabaseConnected,
     user,
+    isAdmin,
     logoutUser
   } = useStorage();
 
   const isLight = theme === 'light';
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
 
-  // Check if current user is admin (admin email / role flag / hash)
+  // Check if current user is admin
+  const ADMIN_EMAILS = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
   const isAdminUser = Boolean(
-    user?.role === 'admin' ||
-    user?.email?.toLowerCase().includes('admin') ||
-    user?.email?.toLowerCase() === 'tegarakhsan@gmail.com' ||
-    user?.email?.toLowerCase() === 'tegarrigger@gmail.com' ||
-    localStorage.getItem('orvian_is_admin') === 'true' ||
-    localStorage.getItem('projectflow_user_role') === 'admin'
+    isAdmin ||
+    (user && (user.role === 'admin' || ADMIN_EMAILS.includes((user.email || '').toLowerCase().trim())))
   );
 
   const navItems = [

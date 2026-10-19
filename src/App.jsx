@@ -23,7 +23,7 @@ import AdminPanelView from './views/AdminPanelView';
 import AuthView from './views/AuthView';
 
 export default function App() {
-  const { currentView, setCurrentView, theme, isSidebarOpen, setIsSidebarOpen, user } = useStorage();
+  const { currentView, setCurrentView, theme, isSidebarOpen, setIsSidebarOpen, user, isAdmin } = useStorage();
   const isLight = theme === 'light';
 
   const renderActiveView = () => {
@@ -82,8 +82,46 @@ export default function App() {
     return <AuthView />;
   }
 
-  // If in admin view, render dedicated Admin Panel
+  // If in admin view, verify admin permission (RBAC)
   if (currentView === 'admin' || window.location.hash === '#admin') {
+    const ADMIN_EMAILS = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
+    const hasAdminAccess = Boolean(
+      isAdmin ||
+      (user && (user.role === 'admin' || ADMIN_EMAILS.includes((user.email || '').toLowerCase().trim())))
+    );
+
+    if (!hasAdminAccess) {
+      // Jika bukan admin, tendang ke home atau landing
+      return (
+        <div className={`min-h-screen flex items-center justify-center p-6 ${
+          isLight ? 'bg-slate-50 text-slate-800' : 'bg-[#0B0B0D] text-zinc-100'
+        }`}>
+          <div className={`max-w-md w-full p-8 rounded-2xl border text-center space-y-4 shadow-xl ${
+            isLight ? 'bg-white border-slate-200' : 'bg-[#141417] border-[#24242A]'
+          }`}>
+            <div className="w-12 h-12 mx-auto rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center font-black text-xl">
+              !
+            </div>
+            <h2 className="text-xl font-bold">Akses Ditolak (403 Forbidden)</h2>
+            <p className="text-xs text-slate-400">
+              Halaman Admin Control Panel hanya dapat diakses oleh akun Master Administrator resmi. Akun Anda terdaftar sebagai user biasa.
+            </p>
+            <button
+              onClick={() => {
+                if (window.location.hash === '#admin') {
+                  window.history.replaceState(null, '', window.location.pathname);
+                }
+                setCurrentView(user ? 'home' : 'landing');
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition-all cursor-pointer shadow-md shadow-amber-500/20"
+            >
+              Kembali ke Halaman Utama
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return <AdminPanelView />;
   }
 
