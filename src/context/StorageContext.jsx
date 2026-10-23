@@ -28,66 +28,109 @@ export function StorageProvider({ children }) {
     localStorage.setItem('projectflow_v2_clean_db', 'true');
   }
 
-  // One-time security migration: sanitize roles and plans in local cache
-  if (typeof window !== 'undefined' && !localStorage.getItem('projectflow_auth_role_sanitized_v1')) {
+  // One-time isolation migration: ensure admin tasks are not stored in regular user's cache
+  if (typeof window !== 'undefined' && !localStorage.getItem('projectflow_user_data_isolation_v1')) {
     try {
       const savedUserStr = localStorage.getItem('orvian_user');
       const adminEmails = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
       if (savedUserStr) {
         const u = JSON.parse(savedUserStr);
         const email = (u?.email || '').toLowerCase().trim();
-        if (!adminEmails.includes(email)) {
-          // Regular user: clear admin flags and reset default plan to Starter
-          u.role = 'user';
-          localStorage.setItem('orvian_user', JSON.stringify(u));
-          localStorage.removeItem('orvian_is_admin');
-          localStorage.setItem('projectflow_user_role', 'user');
-          const currentSavedPlan = localStorage.getItem('projectflow_plan');
-          if (currentSavedPlan === 'Team') {
-            localStorage.setItem('projectflow_plan', 'Starter');
-          }
-        }
-      } else {
-        localStorage.removeItem('orvian_is_admin');
-        localStorage.removeItem('projectflow_user_role');
-        if (localStorage.getItem('projectflow_plan') === 'Team') {
-          localStorage.setItem('projectflow_plan', 'Starter');
+        if (adminEmails.includes(email)) {
+          // Move existing projectflow_* items to admin scope
+          ['projects', 'tasks', 'events', 'habits', 'goals', 'notes'].forEach(key => {
+            const val = localStorage.getItem(`projectflow_${key}`);
+            if (val) localStorage.setItem(`projectflow_admin_${key}`, val);
+          });
+        } else {
+          // Regular user: clear leaked admin tasks and start with clean Starter storage
+          localStorage.removeItem('projectflow_projects');
+          localStorage.removeItem('projectflow_tasks');
+          localStorage.removeItem('projectflow_events');
+          localStorage.removeItem('projectflow_habits');
+          localStorage.removeItem('projectflow_goals');
+          localStorage.removeItem('projectflow_notes');
         }
       }
     } catch (e) {}
-    localStorage.setItem('projectflow_auth_role_sanitized_v1', 'true');
+    localStorage.setItem('projectflow_user_data_isolation_v1', 'true');
   }
 
-  // Load from localStorage or fallback
-  const [projects, setProjects] = useState(() => {
-    const saved = localStorage.getItem('projectflow_projects');
-    return saved ? JSON.parse(saved) : initialProjects;
+  // Daftar email master admin resmi
+  const ADMIN_EMAILS = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
+
+  // Helper to determine active user storage prefix
+  const getStoragePrefix = (userObj) => {
+    if (!userObj || !userObj.email) return 'guest';
+    const emailLower = userObj.email.toLowerCase().trim();
+    if (ADMIN_EMAILS.includes(emailLower)) {
+      return 'admin';
+    }
+    // Encode email safely for localStorage keys
+    return `usr_${emailLower.replace(/[^a-zA-Z0-9]/g, '_')}`;
+  };
+
+  // Authenticated user state initialized first so workspace can be user-scoped
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('orvian_user');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        const emailLower = (parsed.email || '').toLowerCase().trim();
+        if (ADMIN_EMAILS.includes(emailLower)) {
+          parsed.role = 'admin';
+          localStorage.setItem('orvian_is_admin', 'true');
+          localStorage.setItem('projectflow_user_role', 'admin');
+        } else {
+          // Pastikan user biasa SELALU memiliki role 'user' dan BUKAN admin
+          parsed.role = 'user';
+          localStorage.removeItem('orvian_is_admin');
+          localStorage.setItem('projectflow_user_role', 'user');
+        }
+        return parsed;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   });
 
-  const [tasks, setTasks] = useState(() => {
-    const saved = localStorage.getItem('projectflow_tasks');
-    return saved ? JSON.parse(saved) : initialTasks;
-  });
+  const checkIsAdmin = (u) => {
+    if (!u) return false;
+    const email = (u.email || '').toLowerCase().trim();
+    if (ADMIN_EMAILS.includes(email)) return true;
+    if (u.role === 'admin' && ADMIN_EMAILS.includes(email)) return true;
+    return false;
+  };
 
-  const [events, setEvents] = useState(() => {
-    const saved = localStorage.getItem('projectflow_events');
-    return saved ? JSON.parse(saved) : initialEvents;
-  });
+  const isAdmin = checkIsAdmin(user);
 
-  const [habits, setHabits] = useState(() => {
-    const saved = localStorage.getItem('projectflow_habits');
-    return saved ? JSON.parse(saved) : initialHabits;
-  });
+  // Helper to read initial data for a specific user
+  const loadScopedData = (key, fallback, activeUser) => {
+    try {
+      const prefix = getStoragePrefix(activeUser);
+      // Try user scoped key first
+      const scopedVal = localStorage.getItem(`projectflow_${prefix}_${key}`);
+      if (scopedVal) return JSON.parse(scopedVal);
 
-  const [goals, setGoals] = useState(() => {
-    const saved = localStorage.getItem('projectflow_goals');
-    return saved ? JSON.parse(saved) : initialGoals;
-  });
+      // If user is admin and scoped key doesn't exist yet, fallback to legacy global key
+      if (prefix === 'admin') {
+        const legacyVal = localStorage.getItem(`projectflow_${key}`);
+        if (legacyVal) return JSON.parse(legacyVal);
+      }
+      return fallback;
+    } catch (e) {
+      return fallback;
+    }
+  };
 
-  const [notes, setNotes] = useState(() => {
-    const saved = localStorage.getItem('projectflow_notes');
-    return saved ? JSON.parse(saved) : initialNotes;
-  });
+  // Load user-scoped state or clean fallback
+  const [projects, setProjects] = useState(() => loadScopedData('projects', initialProjects, user));
+  const [tasks, setTasks] = useState(() => loadScopedData('tasks', initialTasks, user));
+  const [events, setEvents] = useState(() => loadScopedData('events', initialEvents, user));
+  const [habits, setHabits] = useState(() => loadScopedData('habits', initialHabits, user));
+  const [goals, setGoals] = useState(() => loadScopedData('goals', initialGoals, user));
+  const [notes, setNotes] = useState(() => loadScopedData('notes', initialNotes, user));
 
   // Current view and layout state
   // Default is 'landing' so new visitors see the SaaS landing page with plans, or can enter 'app'
@@ -219,44 +262,6 @@ export function StorageProvider({ children }) {
     }
   }, [subscriptionInfo]);
 
-  // Daftar email master admin resmi
-  const ADMIN_EMAILS = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
-
-  const checkIsAdmin = (u) => {
-    if (!u) return false;
-    const email = (u.email || '').toLowerCase().trim();
-    if (ADMIN_EMAILS.includes(email)) return true;
-    if (u.role === 'admin' && ADMIN_EMAILS.includes(email)) return true;
-    return false;
-  };
-
-  // Authenticated user state
-  const [user, setUser] = useState(() => {
-    try {
-      const savedUser = localStorage.getItem('orvian_user');
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser);
-        const emailLower = (parsed.email || '').toLowerCase().trim();
-        if (ADMIN_EMAILS.includes(emailLower)) {
-          parsed.role = 'admin';
-          localStorage.setItem('orvian_is_admin', 'true');
-          localStorage.setItem('projectflow_user_role', 'admin');
-        } else {
-          // Pastikan user biasa SELALU memiliki role 'user' dan BUKAN admin
-          parsed.role = 'user';
-          localStorage.removeItem('orvian_is_admin');
-          localStorage.setItem('projectflow_user_role', 'user');
-        }
-        return parsed;
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  });
-
-  const isAdmin = checkIsAdmin(user);
-
   const loginUser = (userData) => {
     const emailLower = (userData?.email || '').toLowerCase().trim();
     const isMasterAdmin = ADMIN_EMAILS.includes(emailLower);
@@ -270,14 +275,24 @@ export function StorageProvider({ children }) {
       userData.role = 'user';
       localStorage.removeItem('orvian_is_admin');
       localStorage.setItem('projectflow_user_role', 'user');
-      // Set to Starter unless already having paid subscription
-      const savedPlan = localStorage.getItem('projectflow_plan');
+      // Non-admin always defaults to Starter plan unless they paid for Pro
+      const savedPlan = localStorage.getItem(`projectflow_${getStoragePrefix(userData)}_plan`) || localStorage.getItem('projectflow_plan');
       if (!savedPlan || savedPlan === 'Team') {
         changePlan('Starter');
+      } else {
+        changePlan(savedPlan);
       }
     }
     setUser(userData);
     localStorage.setItem('orvian_user', JSON.stringify(userData));
+
+    // Load workspace data specifically for this user
+    setProjects(loadScopedData('projects', initialProjects, userData));
+    setTasks(loadScopedData('tasks', initialTasks, userData));
+    setEvents(loadScopedData('events', initialEvents, userData));
+    setHabits(loadScopedData('habits', initialHabits, userData));
+    setGoals(loadScopedData('goals', initialGoals, userData));
+    setNotes(loadScopedData('notes', initialNotes, userData));
   };
 
   const logoutUser = async () => {
@@ -290,6 +305,15 @@ export function StorageProvider({ children }) {
     sessionStorage.removeItem('orvian_payment_unlocked');
     sessionStorage.removeItem('orvian_payment_success');
     sessionStorage.removeItem('orvian_current_order_id');
+
+    // Reset current active memory state so no residual data shows on logged out state
+    setProjects(initialProjects);
+    setTasks(initialTasks);
+    setEvents(initialEvents);
+    setHabits(initialHabits);
+    setGoals(initialGoals);
+    setNotes(initialNotes);
+
     if (supabase) {
       try {
         await supabase.auth.signOut();
@@ -406,34 +430,65 @@ export function StorageProvider({ children }) {
     localStorage.setItem('projectflow_last_view', currentView);
   }, [currentView]);
 
-  // Persist state updates to localStorage
+  // Persist state updates to localStorage (scoped to active user)
   useEffect(() => {
-    localStorage.setItem('projectflow_projects', JSON.stringify(projects));
-  }, [projects]);
+    const prefix = getStoragePrefix(user);
+    localStorage.setItem(`projectflow_${prefix}_projects`, JSON.stringify(projects));
+    if (prefix === 'admin') {
+      localStorage.setItem('projectflow_projects', JSON.stringify(projects));
+    }
+  }, [projects, user]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_tasks', JSON.stringify(tasks));
-  }, [tasks]);
+    const prefix = getStoragePrefix(user);
+    localStorage.setItem(`projectflow_${prefix}_tasks`, JSON.stringify(tasks));
+    if (prefix === 'admin') {
+      localStorage.setItem('projectflow_tasks', JSON.stringify(tasks));
+    }
+  }, [tasks, user]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_events', JSON.stringify(events));
-  }, [events]);
+    const prefix = getStoragePrefix(user);
+    localStorage.setItem(`projectflow_${prefix}_events`, JSON.stringify(events));
+    if (prefix === 'admin') {
+      localStorage.setItem('projectflow_events', JSON.stringify(events));
+    }
+  }, [events, user]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_habits', JSON.stringify(habits));
-  }, [habits]);
+    const prefix = getStoragePrefix(user);
+    localStorage.setItem(`projectflow_${prefix}_habits`, JSON.stringify(habits));
+    if (prefix === 'admin') {
+      localStorage.setItem('projectflow_habits', JSON.stringify(habits));
+    }
+  }, [habits, user]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_goals', JSON.stringify(goals));
-  }, [goals]);
+    const prefix = getStoragePrefix(user);
+    localStorage.setItem(`projectflow_${prefix}_goals`, JSON.stringify(goals));
+    if (prefix === 'admin') {
+      localStorage.setItem('projectflow_goals', JSON.stringify(goals));
+    }
+  }, [goals, user]);
 
   useEffect(() => {
-    localStorage.setItem('projectflow_notes', JSON.stringify(notes));
-  }, [notes]);
+    const prefix = getStoragePrefix(user);
+    localStorage.setItem(`projectflow_${prefix}_notes`, JSON.stringify(notes));
+    if (prefix === 'admin') {
+      localStorage.setItem('projectflow_notes', JSON.stringify(notes));
+    }
+  }, [notes, user]);
 
-  // Load from Supabase on start if configured
+  // Load from Supabase on start if configured (Cloud database sync is reserved for Master Admin workspace)
   useEffect(() => {
     if (!supabase || !isSupabaseConfigured) return;
+
+    // Only sync master database records if user is admin. Non-admin users have their own clean workspace!
+    const isUserAdmin = checkIsAdmin(user);
+    if (!isUserAdmin) {
+      setSupabaseConnected(true);
+      return;
+    }
 
     async function fetchFromSupabase() {
       setIsSyncing(true);
@@ -512,7 +567,7 @@ export function StorageProvider({ children }) {
               dueDate: t.due_date,
               sourceLabel: label,
               createdAt: t.created_at,
-              completedAt: t.completed_at
+              completedAt: t.completedAt
             };
           }));
         }
@@ -561,7 +616,7 @@ export function StorageProvider({ children }) {
     }
 
     fetchFromSupabase();
-  }, []);
+  }, [user]);
 
   // Global hotkey Ctrl+K / Cmd+K
   useEffect(() => {
