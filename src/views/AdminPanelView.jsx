@@ -497,6 +497,20 @@ export default function AdminPanelView() {
                     <Send size={13} />
                     <span>Kirim Notifikasi via WhatsApp Admin</span>
                   </a>
+
+                  {selectedOrder.phone && (
+                    <a
+                      href={`https://wa.me/${selectedOrder.phone.replace(/[^0-9]/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(
+                        `Halo Kak ${selectedOrder.name},\n\nKami dari Tim Orvian ingin mengingatkan bahwa masa aktif langganan Paket ${selectedOrder.plan} Anda akan segera berakhir. Anda dapat memperpanjang paket sekarang untuk menjaga seluruh fitur (Google Calendar sync, unlimited project) tetap berjalan lancar.\n\nPerpanjang sekarang melalui link dashboard Orvian Anda.\nTerima kasih!`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold transition-all cursor-pointer"
+                    >
+                      <Send size={13} />
+                      <span>Kirim WhatsApp Reminder ke Pelanggan</span>
+                    </a>
+                  )}
                 </div>
               </div>
             ) : (

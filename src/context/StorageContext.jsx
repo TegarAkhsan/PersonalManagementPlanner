@@ -169,8 +169,55 @@ export function StorageProvider({ children }) {
     return localStorage.getItem('projectflow_plan') || 'Starter';
   });
 
-  // Daftar email master admin resmi
-  const ADMIN_EMAILS = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
+  // Subscription & Expiration tracking (Lifecycle & Grace Period)
+  const [subscriptionInfo, setSubscriptionInfo] = useState(() => {
+    try {
+      const saved = localStorage.getItem('orvian_subscription_info');
+      if (saved) return JSON.parse(saved);
+      // Default jika plan adalah Pro/Team, buat durasi aktif 30 hari ke depan
+      const plan = localStorage.getItem('projectflow_plan');
+      if (plan && plan !== 'Starter') {
+        const d = new Date();
+        d.setDate(d.getDate() + 30);
+        const initial = {
+          plan,
+          startedAt: new Date().toISOString(),
+          expiresAt: d.toISOString(),
+          status: 'active'
+        };
+        localStorage.setItem('orvian_subscription_info', JSON.stringify(initial));
+        return initial;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  // Effect untuk memeriksa status kedaluwarsa & Grace Period secara otomatis
+  useEffect(() => {
+    if (!subscriptionInfo || !subscriptionInfo.expiresAt) return;
+    const plan = localStorage.getItem('projectflow_plan');
+    if (!plan || plan === 'Starter') return;
+
+    const now = new Date();
+    const expiry = new Date(subscriptionInfo.expiresAt);
+    const diffMs = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    // Jika lewat dari 7 hari masa tenggang (diffDays < -7), otomatis downgrade ke Starter
+    if (diffDays < -7) {
+      setCurrentPlan('Starter');
+      localStorage.setItem('projectflow_plan', 'Starter');
+      const updated = { ...subscriptionInfo, status: 'downgraded' };
+      setSubscriptionInfo(updated);
+      localStorage.setItem('orvian_subscription_info', JSON.stringify(updated));
+    } else if (diffDays <= 0 && subscriptionInfo.status !== 'grace_period') {
+      const updated = { ...subscriptionInfo, status: 'grace_period' };
+      setSubscriptionInfo(updated);
+      localStorage.setItem('orvian_subscription_info', JSON.stringify(updated));
+    }
+  }, [subscriptionInfo]);
 
   const checkIsAdmin = (u) => {
     if (!u) return false;
@@ -310,9 +357,25 @@ export function StorageProvider({ children }) {
     return saved ? JSON.parse(saved) : { planId: 'Pro', billingCycle: 'monthly', price: 99000 };
   });
 
-  const changePlan = (planName) => {
+  const changePlan = (planName, customExpiryDays = 30) => {
     setCurrentPlan(planName);
     localStorage.setItem('projectflow_plan', planName);
+
+    if (planName !== 'Starter') {
+      const d = new Date();
+      d.setDate(d.getDate() + customExpiryDays);
+      const newSubInfo = {
+        plan: planName,
+        startedAt: new Date().toISOString(),
+        expiresAt: d.toISOString(),
+        status: 'active'
+      };
+      setSubscriptionInfo(newSubInfo);
+      localStorage.setItem('orvian_subscription_info', JSON.stringify(newSubInfo));
+    } else {
+      setSubscriptionInfo(null);
+      localStorage.removeItem('orvian_subscription_info');
+    }
   };
 
   const startCheckout = (planId, billingCycle = 'monthly', price = 99000) => {
@@ -1102,6 +1165,8 @@ export function StorageProvider({ children }) {
       syncAllLocalToSupabase,
       currentPlan,
       changePlan,
+      subscriptionInfo,
+      setSubscriptionInfo,
       user,
       isAdmin,
       loginUser,

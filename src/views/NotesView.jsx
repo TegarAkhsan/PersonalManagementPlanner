@@ -184,16 +184,31 @@ export default function NotesView() {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Document Export (.docx / PDF) Button */}
           <button
-            onClick={() => setShowExportModal(true)}
+            onClick={() => {
+              if (currentPlan === 'Starter') {
+                showAlert({
+                  type: 'warning',
+                  title: 'Fitur Khusus Paket Pro',
+                  message: 'Ekspor dokumen ke format resmi Microsoft Word (.docx) dan PDF hanya tersedia untuk pengguna paket Pro dan Team. Silakan upgrade paket Anda untuk menikmati fitur ini.'
+                });
+                return;
+              }
+              setShowExportModal(true);
+            }}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer shadow-xs ${
               isLight
                 ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
                 : 'bg-[#18181D] hover:bg-[#202026] text-zinc-300 border-[#2A2A32]'
-            }`}
-            title="Ekspor dokumen catatan ke Word (.docx) atau PDF"
+            } ${currentPlan === 'Starter' ? 'opacity-70' : ''}`}
+            title={currentPlan === 'Starter' ? 'Ekspor dokumen (Khusus Pro)' : 'Ekspor dokumen catatan ke Word (.docx) atau PDF'}
           >
-            <FileText size={14} className="text-amber-500" />
+            <FileText size={14} className={currentPlan === 'Starter' ? 'text-slate-400' : 'text-amber-500'} />
             <span>Ekspor Dokumen</span>
+            {currentPlan === 'Starter' && (
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-500 font-extrabold uppercase">
+                PRO
+              </span>
+            )}
           </button>
 
           <button

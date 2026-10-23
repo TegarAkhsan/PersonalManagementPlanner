@@ -41,8 +41,9 @@ export default function LandingPageView() {
       popular: false,
       features: [
         'Hingga 2 Proyek Aktif',
-        'Kanban Board & List View Tugas',
-        'Pelacak Rutinitas & Habit Harian',
+        'Kanban & List Tugas (Maks. 10 Tugas Aktif)',
+        'Pelacak Rutinitas (Maks. 2 Habit Harian)',
+        'Tanpa Akses Halaman Kalender (Khusus Pro)',
         'Penyimpanan Lokal Browser Otomatis',
         'Dukungan Komunitas'
       ],
@@ -54,7 +55,9 @@ export default function LandingPageView() {
       name: 'Pro',
       badge: 'Paling Populer',
       priceMonthly: 99000,
+      promoMonthly: 50000,
       priceYearly: 79000,
+      promoYearly: 49000,
       description: 'Untuk freelancer, kreator, dan profesional yang butuh kendali penuh atas proyek dan jadwal.',
       popular: true,
       features: [
@@ -118,7 +121,7 @@ export default function LandingPageView() {
       // Must sign in / sign up before entering free starter workspace
       setCurrentView('auth');
     } else {
-      const price = billingCycle === 'monthly' ? plan.priceMonthly : plan.priceYearly;
+      let price = billingCycle === 'monthly' ? (plan.promoMonthly || plan.priceMonthly) : (plan.promoYearly || plan.priceYearly);
       startCheckout(plan.id, billingCycle, price);
     }
   };
@@ -556,18 +559,36 @@ export default function LandingPageView() {
                   </p>
 
                   <div className={`mt-4 pb-4 border-b ${isLight ? 'border-slate-100' : 'border-[#222228]'}`}>
-                    <div className="flex items-baseline gap-1">
-                      <span className={`text-3xl font-extrabold ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                        {price === 0 ? 'Gratis' : `Rp ${price.toLocaleString('id-ID')}`}
-                      </span>
-                      {price > 0 && (
-                        <span className={`text-xs font-medium ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
-                          /bulan
-                        </span>
+                    <div className="flex flex-col gap-1">
+                      {p.promoMonthly && (
+                        <div className="inline-flex items-center gap-1.5 self-start px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                          🔥 Promo Pembelian Pertama
+                        </div>
                       )}
+                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                        {p.promoMonthly ? (
+                          <>
+                            <span className={`text-3xl font-extrabold text-amber-500`}>
+                              Rp {(billingCycle === 'monthly' ? p.promoMonthly : p.promoYearly).toLocaleString('id-ID')}
+                            </span>
+                            <span className={`text-sm line-through ${isLight ? 'text-slate-400' : 'text-zinc-500'}`}>
+                              Rp {price.toLocaleString('id-ID')}
+                            </span>
+                          </>
+                        ) : (
+                          <span className={`text-3xl font-extrabold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                            {price === 0 ? 'Gratis' : `Rp ${price.toLocaleString('id-ID')}`}
+                          </span>
+                        )}
+                        {price > 0 && (
+                          <span className={`text-xs font-medium ${isLight ? 'text-slate-500' : 'text-zinc-400'}`}>
+                            /bulan
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {billingCycle === 'yearly' && price > 0 && (
-                      <p className="text-[10px] text-emerald-400 font-medium mt-0.5">
+                      <p className="text-[10px] text-emerald-400 font-medium mt-1">
                         Ditagih tahunan (hemat 20%)
                       </p>
                     )}

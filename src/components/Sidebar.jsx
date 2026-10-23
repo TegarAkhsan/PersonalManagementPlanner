@@ -47,17 +47,21 @@ export default function Sidebar() {
     (user && (user.role === 'admin' || ADMIN_EMAILS.includes((user.email || '').toLowerCase().trim())))
   );
 
-  const navItems = [
+  const allNavItems = [
     { id: 'home', label: 'Ringkasan', icon: LayoutDashboard },
     { id: 'today', label: 'Hari Ini', icon: CalendarCheck },
     { id: 'projects', label: 'Proyek', icon: FolderGit2 },
     { id: 'tasks', label: 'Daftar Tugas', icon: CheckSquare },
     { id: 'goals', label: 'Target / OKR', icon: Target },
     { id: 'habits', label: 'Habit & Rutinitas', icon: Repeat },
-    { id: 'calendar', label: 'Kalender Lengkap', icon: CalendarIcon },
+    { id: 'calendar', label: 'Kalender Lengkap', icon: CalendarIcon, proOnly: true },
     { id: 'notes', label: 'Catatan & Dokumen', icon: FileText },
     { id: 'analytics', label: 'Analitik', icon: BarChart3 }
   ];
+
+  const navItems = currentPlan === 'Starter' 
+    ? allNavItems.filter(item => !item.proOnly)
+    : allNavItems;
 
   const systemItems = [
     { id: 'archive-habits', label: 'Arsip Habit', icon: Archive },

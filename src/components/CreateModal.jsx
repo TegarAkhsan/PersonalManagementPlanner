@@ -50,7 +50,7 @@ export default function CreateModal() {
 }
 
 function CreateTaskForm({ onClose, isLight }) {
-  const { addTask, projects } = useStorage();
+  const { addTask, tasks, currentPlan, showAlert, projects } = useStorage();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [projectId, setProjectId] = useState('');
@@ -65,6 +65,17 @@ function CreateTaskForm({ onClose, isLight }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return;
+
+    if (currentPlan === 'Starter' && tasks.length >= 10) {
+      showAlert({
+        type: 'warning',
+        title: 'Batas Tugas Tercapai (10/10)',
+        message: 'Paket Starter dibatasi maksimal 10 tugas aktif. Selesaikan tugas lama atau upgrade ke paket Pro untuk membuat tugas tanpa batas!'
+      });
+      onClose();
+      return;
+    }
+
     addTask({
       title,
       description: description.trim(),
@@ -353,7 +364,7 @@ function CreateProjectForm({ onClose, isLight }) {
 }
 
 function CreateHabitForm({ onClose, isLight }) {
-  const { addHabit } = useStorage();
+  const { addHabit, habits, currentPlan, showAlert } = useStorage();
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('🔥');
   const [color, setColor] = useState('#3B82F6');
@@ -362,6 +373,18 @@ function CreateHabitForm({ onClose, isLight }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    const activeHabits = habits.filter(h => !h.archived);
+    if (currentPlan === 'Starter' && activeHabits.length >= 2) {
+      showAlert({
+        type: 'warning',
+        title: 'Batas Habit Tercapai (2/2)',
+        message: 'Paket Starter dibatasi maksimal 2 habit aktif. Upgrade ke paket Pro untuk membuat habit tanpa batas dan visual heatmap lengkap!'
+      });
+      onClose();
+      return;
+    }
+
     addHabit({
       name,
       emoji,

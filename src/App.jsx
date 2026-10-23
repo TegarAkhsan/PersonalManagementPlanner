@@ -6,6 +6,7 @@ import CreateModal from './components/CreateModal';
 import CommandPalette from './components/CommandPalette';
 import ConfirmationModal from './components/ConfirmationModal';
 import TasksSection from './components/TasksSection';
+import SubscriptionReminderBanner from './components/SubscriptionReminderBanner';
 
 // Views
 import HomeView from './views/HomeView';
@@ -64,6 +65,27 @@ export default function App() {
       case 'goals':
         return <GoalsView />;
       case 'calendar':
+        if (currentPlan === 'Starter') {
+          return (
+            <div className="flex flex-col items-center justify-center min-h-[500px] text-center p-6 space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-2xl">
+                📅
+              </div>
+              <h3 className={`text-xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                Halaman Kalender Khusus Paket Pro
+              </h3>
+              <p className="text-xs text-slate-500 max-w-md leading-relaxed">
+                Fitur kalender lengkap, agenda rapat, dan integrasi Google Calendar real-time hanya tersedia untuk pengguna paket Pro dan Team.
+              </p>
+              <button
+                onClick={() => setCurrentView('landing')}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs shadow-md hover:from-amber-400 hover:to-amber-500 transition-all cursor-pointer"
+              >
+                Upgrade ke Pro (Rp 50.000)
+              </button>
+            </div>
+          );
+        }
         return <CalendarFullView />;
       case 'notes':
         return <NotesView />;
@@ -232,7 +254,7 @@ export default function App() {
         <footer className={`border-t transition-colors ${
           isLight ? 'bg-white border-slate-200 text-slate-600' : 'bg-[#101014] border-[#222228] text-zinc-400'
         }`}>
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-12 grid grid-cols-1 md:grid-cols-4 gap-8 text-xs">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-xs">
             {/* Col 1: Brand & Bio */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -303,20 +325,7 @@ export default function App() {
               </ul>
             </div>
 
-            {/* Col 3: Integrasi Eksternal */}
-            <div className="space-y-2.5">
-              <h4 className={`font-bold uppercase tracking-wider text-[11px] ${isLight ? 'text-slate-900' : 'text-zinc-200'}`}>
-                Integrasi Ekosistem
-              </h4>
-              <ul className="space-y-1.5 text-[11px]">
-                <li className="flex items-center gap-1.5"><span>• Cloud Database Synchronization</span></li>
-                <li className="flex items-center gap-1.5"><span>• Google Calendar Synchronization</span></li>
-                <li className="flex items-center gap-1.5"><span>• Ekspor Dokumen Resmi (.docx & PDF)</span></li>
-                <li className="flex items-center gap-1.5"><span>• Netlify Hosting & CI/CD Deployment</span></li>
-              </ul>
-            </div>
-
-            {/* Col 4: Keamanan & Status */}
+            {/* Col 3: Keamanan & Status */}
             <div className="space-y-2.5">
               <h4 className={`font-bold uppercase tracking-wider text-[11px] ${isLight ? 'text-slate-900' : 'text-zinc-200'}`}>
                 Keamanan & Garansi
@@ -359,6 +368,9 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Top Navbar with live clock, Ctrl+K search, layout toggles */}
         <TopBar />
+
+        {/* In-App Subscription Lifecycle & Grace Period Banner */}
+        <SubscriptionReminderBanner />
 
         {/* Dynamic Page Content with independent scrollbar */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">

@@ -40,6 +40,7 @@ export default function SettingsView() {
     syncAllLocalToSupabase,
     currentPlan,
     changePlan,
+    subscriptionInfo,
     setCurrentView,
     startCheckout,
     user,
@@ -156,9 +157,16 @@ export default function SettingsView() {
               </p>
             </div>
             <div className={`p-3 rounded-xl border ${isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-[#18181E] border-white/5'}`}>
-              <p className="text-[10px] text-slate-400 uppercase font-semibold">Keamanan Data</p>
+              <p className="text-[10px] text-slate-400 uppercase font-semibold">Masa Aktif Paket</p>
               <p className="font-bold text-indigo-400 mt-0.5 flex items-center gap-1">
-                <Lock size={12} /> 256-bit Encrypted
+                <Clock size={12} />
+                <span>
+                  {currentPlan === 'Starter'
+                    ? 'Tanpa Batas (Gratis)'
+                    : subscriptionInfo?.expiresAt
+                    ? new Date(subscriptionInfo.expiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : 'Aktif 30 Hari'}
+                </span>
               </p>
             </div>
             <div className={`p-3 rounded-xl border ${isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-[#18181E] border-white/5'}`}>

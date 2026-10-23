@@ -27,6 +27,9 @@ export default function TasksSection() {
     deleteTask,
     setCreateModalType,
     theme,
+    currentPlan,
+    showAlert,
+    setCurrentView,
     showConfirm
   } = useStorage();
 
@@ -249,7 +252,17 @@ export default function TasksSection() {
                         </span>
                       </div>
                       <button
-                        onClick={() => setCreateModalType('task')}
+                        onClick={() => {
+                          if (currentPlan === 'Starter' && tasks.length >= 10) {
+                            showAlert({
+                              type: 'warning',
+                              title: 'Batas Tugas Tercapai (10/10)',
+                              message: 'Paket Starter dibatasi maksimal 10 tugas aktif. Selesaikan/hapus tugas lama atau upgrade ke paket Pro untuk membuat tugas & Kanban tanpa batas!'
+                            });
+                            return;
+                          }
+                          setCreateModalType('task');
+                        }}
                         className={`p-1 rounded transition-colors ${
                           isLight ? 'text-slate-400 hover:text-slate-800 hover:bg-white' : 'text-zinc-400 hover:text-white hover:bg-[#1E1E24]'
                         }`}

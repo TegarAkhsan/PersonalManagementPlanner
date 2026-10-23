@@ -63,10 +63,10 @@ export default function PaymentView() {
   const billingCycle = checkoutData?.billingCycle || 'monthly';
   const isYearly = billingCycle === 'yearly';
 
-  const monthlyPrice = planId === 'Team' ? 249000 : 99000;
-  const yearlyPerMonth = planId === 'Team' ? 199000 : 79000;
+  const monthlyPrice = checkoutData?.price || (planId === 'Team' ? 249000 : 50000);
+  const yearlyPerMonth = planId === 'Team' ? 199000 : 49000;
   const baseMonthly = isYearly ? yearlyPerMonth : monthlyPrice;
-  const subtotal = isYearly ? baseMonthly * 12 : baseMonthly;
+  const subtotal = isYearly ? (checkoutData?.price ? checkoutData.price * 12 : baseMonthly * 12) : baseMonthly;
 
   // Referral discount
   const isReferralValid = formData.referral.trim().toUpperCase() === 'DISKON20' || formData.referral.trim().toUpperCase() === 'PROJECTFLOW';
@@ -247,8 +247,9 @@ export default function PaymentView() {
       });
       return;
     }
-    // Activate Role Plan and grant workspace RBAC access
-    changePlan(planId);
+    // Activate Role Plan and grant workspace RBAC access (30 days monthly or 365 days yearly)
+    const durationDays = isYearly ? 365 : 30;
+    changePlan(planId, durationDays);
     setCurrentView('home');
   };
 

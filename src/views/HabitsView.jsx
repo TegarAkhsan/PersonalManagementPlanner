@@ -21,6 +21,9 @@ export default function HabitsView() {
     deleteHabit,
     setCreateModalType,
     theme,
+    currentPlan,
+    showAlert,
+    setCurrentView,
     showConfirm
   } = useStorage();
 
@@ -93,11 +96,26 @@ export default function HabitsView() {
           </div>
 
           <button
-            onClick={() => setCreateModalType(activeTab === 'habits' ? 'habit' : 'event')}
+            onClick={() => {
+              if (activeTab === 'habits' && currentPlan === 'Starter' && activeHabits.length >= 2) {
+                showAlert({
+                  type: 'warning',
+                  title: 'Batas Habit Tercapai (2/2)',
+                  message: 'Paket Starter dibatasi maksimal 2 habit aktif. Upgrade ke paket Pro untuk membuat habit tanpa batas dan visual heatmap lengkap!'
+                });
+                return;
+              }
+              setCreateModalType(activeTab === 'habits' ? 'habit' : 'event');
+            }}
             className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-md transition-all active:scale-95 cursor-pointer"
           >
             <Plus size={15} />
             <span>{activeTab === 'habits' ? 'Habit Baru' : 'Agenda Baru'}</span>
+            {currentPlan === 'Starter' && activeTab === 'habits' && (
+              <span className="text-[10px] bg-black/20 px-1.5 py-0.2 rounded font-normal">
+                {activeHabits.length}/2
+              </span>
+            )}
           </button>
         </div>
       </div>
