@@ -7,7 +7,7 @@ import {
 import { useStorage } from '../context/StorageContext';
 
 export default function ArchiveHabitsView() {
-  const { habits, archiveHabit, deleteHabit, theme } = useStorage();
+  const { habits, archiveHabit, deleteHabit, theme, showConfirm } = useStorage();
   const isLight = theme === 'light';
 
   const archivedHabits = habits.filter((h) => h.archived);
@@ -73,8 +73,17 @@ export default function ArchiveHabitsView() {
                   <RotateCcw size={14} />
                 </button>
                 <button
-                  onClick={() => deleteHabit(h.id)}
-                  className={`p-1.5 rounded transition-colors ${
+                  onClick={() => {
+                    showConfirm({
+                      type: 'danger',
+                      title: 'Hapus Habit Permanen',
+                      message: `Apakah Anda yakin ingin menghapus habit "${h.name || 'ini'}" secara permanen? Data streak tidak akan dapat dipulihkan.`,
+                      confirmText: 'Hapus Permanen',
+                      cancelText: 'Batal',
+                      onConfirm: () => deleteHabit(h.id)
+                    });
+                  }}
+                  className={`p-1.5 rounded transition-colors cursor-pointer ${
                     isLight
                       ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
                       : 'bg-[#202026] text-rose-400 hover:bg-rose-500/20'

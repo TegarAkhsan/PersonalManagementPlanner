@@ -9,7 +9,7 @@ import {
 import { useStorage } from '../context/StorageContext';
 
 export default function NotesView() {
-  const { notes, projects, addNote, deleteNote, setCreateModalType, theme, currentPlan } = useStorage();
+  const { notes, projects, addNote, deleteNote, setCreateModalType, theme, currentPlan, showConfirm, showAlert } = useStorage();
   const isLight = theme === 'light';
   const [selectedNoteId, setSelectedNoteId] = useState(notes[0]?.id || null);
 
@@ -88,7 +88,11 @@ export default function NotesView() {
 
     const printWin = window.open('', '_blank', 'width=800,height=900');
     if (!printWin) {
-      alert('Mohon izinkan pop-up browser untuk mencetak / menyimpan PDF');
+      showAlert({
+        type: 'warning',
+        title: 'Izin Pop-up Diperlukan',
+        message: 'Mohon izinkan pop-up pada peramban (browser) Anda untuk mencetak atau menyimpan dokumen ke PDF.'
+      });
       return;
     }
 
@@ -244,11 +248,19 @@ export default function NotesView() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      deleteNote(note.id);
+                      showConfirm({
+                        type: 'danger',
+                        title: 'Hapus Catatan',
+                        message: `Apakah Anda yakin ingin menghapus catatan "${note.title || 'ini'}"?`,
+                        confirmText: 'Ya, Hapus Catatan',
+                        cancelText: 'Batal',
+                        onConfirm: () => deleteNote(note.id)
+                      });
                     }}
-                    className={`p-1 transition-colors ${
+                    className={`p-1 transition-colors cursor-pointer rounded hover:bg-rose-500/10 ${
                       isLight ? 'text-slate-400 hover:text-rose-600' : 'text-zinc-500 hover:text-rose-400'
                     }`}
+                    title="Hapus catatan"
                   >
                     <Trash2 size={13} />
                   </button>

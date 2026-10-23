@@ -46,14 +46,7 @@ export default function AuthView() {
           authProvider: u.app_metadata?.provider || 'google',
           registeredAt: u.created_at
         };
-        const adminEmails = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
-        const isMasterAdmin = adminEmails.includes((u.email || '').toLowerCase().trim());
         loginUser(userData);
-        if (isMasterAdmin) {
-          changePlan('Team');
-        } else if (!localStorage.getItem('projectflow_plan')) {
-          changePlan('Starter');
-        }
         setSuccessMsg('Login berhasil! Mengalihkan ke dashboard...');
         setTimeout(() => setCurrentView('home'), 400);
       }

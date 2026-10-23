@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import CreateModal from './components/CreateModal';
 import CommandPalette from './components/CommandPalette';
+import ConfirmationModal from './components/ConfirmationModal';
 import TasksSection from './components/TasksSection';
 
 // Views
@@ -332,6 +333,7 @@ export default function App() {
             © {new Date().getFullYear()} Orvian — One space. Every ambition. Hak Cipta Dilindungi.
           </div>
         </footer>
+        <ConfirmationModal />
       </div>
     );
   }
@@ -367,6 +369,7 @@ export default function App() {
       {/* Global Modals & Palettes */}
       <CreateModal />
       <CommandPalette />
+      <ConfirmationModal />
     </div>
   );
 }

@@ -28,6 +28,36 @@ export function StorageProvider({ children }) {
     localStorage.setItem('projectflow_v2_clean_db', 'true');
   }
 
+  // One-time security migration: sanitize roles and plans in local cache
+  if (typeof window !== 'undefined' && !localStorage.getItem('projectflow_auth_role_sanitized_v1')) {
+    try {
+      const savedUserStr = localStorage.getItem('orvian_user');
+      const adminEmails = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
+      if (savedUserStr) {
+        const u = JSON.parse(savedUserStr);
+        const email = (u?.email || '').toLowerCase().trim();
+        if (!adminEmails.includes(email)) {
+          // Regular user: clear admin flags and reset default plan to Starter
+          u.role = 'user';
+          localStorage.setItem('orvian_user', JSON.stringify(u));
+          localStorage.removeItem('orvian_is_admin');
+          localStorage.setItem('projectflow_user_role', 'user');
+          const currentSavedPlan = localStorage.getItem('projectflow_plan');
+          if (currentSavedPlan === 'Team') {
+            localStorage.setItem('projectflow_plan', 'Starter');
+          }
+        }
+      } else {
+        localStorage.removeItem('orvian_is_admin');
+        localStorage.removeItem('projectflow_user_role');
+        if (localStorage.getItem('projectflow_plan') === 'Team') {
+          localStorage.setItem('projectflow_plan', 'Starter');
+        }
+      }
+    } catch (e) {}
+    localStorage.setItem('projectflow_auth_role_sanitized_v1', 'true');
+  }
+
   // Load from localStorage or fallback
   const [projects, setProjects] = useState(() => {
     const saved = localStorage.getItem('projectflow_projects');
@@ -77,9 +107,66 @@ export function StorageProvider({ children }) {
   const [createModalType, setCreateModalType] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Global Dialog / Modal Notification State (Logout, Delete, Info, Warning, Confirm)
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    type: 'confirm',
+    title: '',
+    message: '',
+    confirmText: '',
+    cancelText: 'Batal',
+    showCancel: true,
+    onConfirm: null,
+    onCancel: null
+  });
+
+  const closeModal = () => {
+    setModalConfig((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const openModal = (config) => {
+    setModalConfig({
+      isOpen: true,
+      type: config.type || 'confirm',
+      title: config.title || 'Konfirmasi',
+      message: config.message || '',
+      confirmText: config.confirmText,
+      cancelText: config.cancelText || 'Batal',
+      showCancel: config.showCancel !== false,
+      onConfirm: config.onConfirm || null,
+      onCancel: config.onCancel || null
+    });
+  };
+
+  const showConfirm = ({ title, message, type = 'warning', confirmText = 'Lanjutkan', cancelText = 'Batal', onConfirm, onCancel }) => {
+    openModal({
+      title,
+      message,
+      type,
+      confirmText,
+      cancelText,
+      showCancel: true,
+      onConfirm,
+      onCancel
+    });
+  };
+
+  const showAlert = ({ title = 'Pemberitahuan', message, type = 'info', confirmText = 'Mengerti', onConfirm }) => {
+    openModal({
+      title,
+      message,
+      type,
+      confirmText,
+      showCancel: false,
+      onConfirm
+    });
+  };
+
+
   // Selected SaaS Pricing plan (Starter, Pro, Team)
+  // Default is 'Starter' for free users. Only admins or confirmed paid users get Pro/Team.
   const [currentPlan, setCurrentPlan] = useState(() => {
-    return localStorage.getItem('projectflow_plan') || 'Team';
+    return localStorage.getItem('projectflow_plan') || 'Starter';
   });
 
   // Daftar email master admin resmi
@@ -89,7 +176,7 @@ export function StorageProvider({ children }) {
     if (!u) return false;
     const email = (u.email || '').toLowerCase().trim();
     if (ADMIN_EMAILS.includes(email)) return true;
-    if (u.role === 'admin') return true;
+    if (u.role === 'admin' && ADMIN_EMAILS.includes(email)) return true;
     return false;
   };
 
@@ -105,14 +192,10 @@ export function StorageProvider({ children }) {
           localStorage.setItem('orvian_is_admin', 'true');
           localStorage.setItem('projectflow_user_role', 'admin');
         } else {
-          // Pastikan user biasa memiliki role 'user' dan flag admin dibersihkan
-          if (parsed.role === 'admin' && !ADMIN_EMAILS.includes(emailLower)) {
-            parsed.role = 'user';
-          } else if (!parsed.role) {
-            parsed.role = 'user';
-          }
+          // Pastikan user biasa SELALU memiliki role 'user' dan BUKAN admin
+          parsed.role = 'user';
           localStorage.removeItem('orvian_is_admin');
-          localStorage.setItem('projectflow_user_role', parsed.role);
+          localStorage.setItem('projectflow_user_role', 'user');
         }
         return parsed;
       }
@@ -132,10 +215,16 @@ export function StorageProvider({ children }) {
       userData.role = 'admin';
       localStorage.setItem('orvian_is_admin', 'true');
       localStorage.setItem('projectflow_user_role', 'admin');
+      changePlan('Team');
     } else {
-      userData.role = userData.role || 'user';
+      userData.role = 'user';
       localStorage.removeItem('orvian_is_admin');
-      localStorage.setItem('projectflow_user_role', userData.role);
+      localStorage.setItem('projectflow_user_role', 'user');
+      // Set to Starter unless already having paid subscription
+      const savedPlan = localStorage.getItem('projectflow_plan');
+      if (!savedPlan || savedPlan === 'Team') {
+        changePlan('Starter');
+      }
     }
     setUser(userData);
     localStorage.setItem('orvian_user', JSON.stringify(userData));
@@ -143,9 +232,14 @@ export function StorageProvider({ children }) {
 
   const logoutUser = async () => {
     setUser(null);
+    setCurrentPlan('Starter');
     localStorage.removeItem('orvian_user');
     localStorage.removeItem('orvian_is_admin');
     localStorage.removeItem('projectflow_user_role');
+    localStorage.removeItem('projectflow_plan');
+    sessionStorage.removeItem('orvian_payment_unlocked');
+    sessionStorage.removeItem('orvian_payment_success');
+    sessionStorage.removeItem('orvian_current_order_id');
     if (supabase) {
       try {
         await supabase.auth.signOut();
@@ -180,11 +274,6 @@ export function StorageProvider({ children }) {
           registeredAt: u.created_at
         };
         loginUser(userData);
-        if (ADMIN_EMAILS.includes((u.email || '').toLowerCase().trim())) {
-          changePlan('Team');
-        } else if (!localStorage.getItem('projectflow_plan')) {
-          changePlan('Starter');
-        }
         // Only redirect to home if this was an active OAuth callback redirect (containing access_token)
         if (isFreshOAuthRedirect) {
           setCurrentView('home');
@@ -205,11 +294,6 @@ export function StorageProvider({ children }) {
           registeredAt: u.created_at
         };
         loginUser(userData);
-        if (ADMIN_EMAILS.includes((u.email || '').toLowerCase().trim())) {
-          changePlan('Team');
-        } else if (!localStorage.getItem('projectflow_plan')) {
-          changePlan('Starter');
-        }
         // Only redirect if explicitly coming back from OAuth redirect or explicitly signed in from auth page
         if (isFreshOAuthRedirect) {
           setCurrentView('home');
@@ -833,7 +917,11 @@ export function StorageProvider({ children }) {
   // Push seed data directly into Supabase
   const syncAllLocalToSupabase = async () => {
     if (!supabase || !isSupabaseConfigured) {
-      alert('Supabase credentials are not configured yet in .env');
+      showAlert({
+        type: 'warning',
+        title: 'Konfigurasi Supabase Diperlukan',
+        message: 'Kredensial Supabase belum dikonfigurasikan di environment (.env).'
+      });
       return;
     }
     setIsSyncing(true);
@@ -917,10 +1005,18 @@ export function StorageProvider({ children }) {
       }
 
       setLastSyncTime(new Date().toLocaleTimeString());
-      alert('Semua data berhasil disinkronkan ke database Supabase!');
+      showAlert({
+        type: 'success',
+        title: 'Sinkronisasi Berhasil',
+        message: 'Semua data lokal berhasil disinkronkan ke database cloud Supabase!'
+      });
     } catch (err) {
       console.error(err);
-      alert('Gagal sinkronisasi data ke Supabase: ' + err.message);
+      showAlert({
+        type: 'danger',
+        title: 'Sinkronisasi Gagal',
+        message: 'Gagal sinkronisasi data ke Supabase: ' + err.message
+      });
     } finally {
       setIsSyncing(false);
     }
@@ -993,6 +1089,12 @@ export function StorageProvider({ children }) {
       setCreateModalType,
       searchQuery,
       setSearchQuery,
+      // Notification / Alert / Confirmation Modal
+      modalConfig,
+      openModal,
+      closeModal,
+      showConfirm,
+      showAlert,
       // Supabase & SaaS state
       isSyncing,
       supabaseConnected,

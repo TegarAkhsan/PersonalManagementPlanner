@@ -24,7 +24,8 @@ export default function TopBar() {
     toggleTheme,
     setCurrentView,
     user,
-    logoutUser
+    logoutUser,
+    showConfirm
   } = useStorage();
 
   const [currentTime, setCurrentTime] = useState('');
@@ -182,11 +183,18 @@ export default function TopBar() {
 
         {/* User Log Out Quick Action Button */}
         <button
-          onClick={async () => {
-            if (window.confirm('Yakin ingin keluar dari akun Anda?')) {
-              await logoutUser();
-              setCurrentView('landing');
-            }
+          onClick={() => {
+            showConfirm({
+              type: 'logout',
+              title: 'Keluar dari Akun',
+              message: 'Apakah Anda yakin ingin keluar dari akun Anda? Sesi Anda akan diakhiri.',
+              confirmText: 'Ya, Keluar Akun',
+              cancelText: 'Tetap di Sini',
+              onConfirm: async () => {
+                await logoutUser();
+                setCurrentView('landing');
+              }
+            });
           }}
           title="Keluar dari Akun (Log Out)"
           className={`p-2 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${

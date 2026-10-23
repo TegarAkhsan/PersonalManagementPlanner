@@ -43,7 +43,9 @@ export default function SettingsView() {
     setCurrentView,
     startCheckout,
     user,
-    isAdmin
+    isAdmin,
+    showConfirm,
+    showAlert
   } = useStorage();
 
   const isLight = theme === 'light';
@@ -430,11 +432,22 @@ export default function SettingsView() {
 
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
-              onClick={async () => {
-                if (window.confirm('Yakin ingin MENGHAPUS SEMUA DATA dummy? Seluruh item tugas/proyek akan dibersihkan.')) {
-                  await clearAllData();
-                  alert('Semua data berhasil dibersihkan! Anda sekarang memiliki database kosong siap pakai.');
-                }
+              onClick={() => {
+                showConfirm({
+                  type: 'danger',
+                  title: 'Hapus Semua Data Dummy?',
+                  message: 'Yakin ingin MENGHAPUS SEMUA DATA dummy? Seluruh item tugas, proyek, dan catatan akan dibersihkan.',
+                  confirmText: 'Ya, Bersihkan Data',
+                  cancelText: 'Batal',
+                  onConfirm: async () => {
+                    await clearAllData();
+                    showAlert({
+                      type: 'success',
+                      title: 'Data Berhasil Dibersihkan',
+                      message: 'Semua data contoh berhasil dikosongkan! Anda sekarang memiliki database bersih siap pakai.'
+                    });
+                  }
+                });
               }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
             >
@@ -443,9 +456,21 @@ export default function SettingsView() {
 
             <button
               onClick={() => {
-                if (window.confirm('Kembalikan semua data ke pengaturan demo awal?')) {
-                  resetDemoData();
-                }
+                showConfirm({
+                  type: 'warning',
+                  title: 'Reset ke Data Demo?',
+                  message: 'Kembalikan semua item ke konfigurasi data contoh demo awal?',
+                  confirmText: 'Ya, Reset Demo',
+                  cancelText: 'Batal',
+                  onConfirm: () => {
+                    resetDemoData();
+                    showAlert({
+                      type: 'success',
+                      title: 'Data Demo Dipulihkan',
+                      message: 'Semua contoh proyek, habit, dan tugas demo telah berhasil dimuat kembali.'
+                    });
+                  }
+                });
               }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#1E1E24] dark:hover:bg-[#25252E] text-slate-700 dark:text-zinc-200 text-xs font-semibold border border-slate-300 dark:border-[#2D2D38] transition-all cursor-pointer"
             >

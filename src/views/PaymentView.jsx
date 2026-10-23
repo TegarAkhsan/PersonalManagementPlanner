@@ -29,7 +29,7 @@ import { downloadInvoice } from '../lib/invoiceGenerator';
 import { fetchAdminSettings, getLocalSettings } from '../lib/invoiceSettingsService';
 
 export default function PaymentView() {
-  const { checkoutData, changePlan, theme, setCurrentView } = useStorage();
+  const { checkoutData, changePlan, theme, setCurrentView, showAlert } = useStorage();
   const isLight = theme === 'light';
 
   // Persistent Checkout Session State (survives browser refresh)
@@ -240,7 +240,11 @@ export default function PaymentView() {
 
   const handleGoToDashboard = () => {
     if (!waConfirmed && !isUnlocked) {
-      alert('Mohon konfirmasi pembayaran terlebih dahulu ke WhatsApp (0858-2000-4069) atau tunggu konfirmasi dari Admin untuk membuka akses dashboard.');
+      showAlert({
+        type: 'warning',
+        title: 'Konfirmasi Pembayaran Diperlukan',
+        message: 'Mohon konfirmasi pembayaran terlebih dahulu ke WhatsApp Admin (0858-2000-4069) atau tunggu verifikasi dari Admin untuk membuka akses dashboard Anda.'
+      });
       return;
     }
     // Activate Role Plan and grant workspace RBAC access
@@ -484,7 +488,11 @@ export default function PaymentView() {
               type="button"
               onClick={() => {
                 navigator.clipboard.writeText('085820004069');
-                alert('Nomor WhatsApp 085820004069 berhasil disalin!');
+                showAlert({
+                  type: 'success',
+                  title: 'Nomor WhatsApp Disalin',
+                  message: 'Nomor WhatsApp Admin (0858-2000-4069) berhasil disalin ke clipboard! Status pembayaran Anda telah ditandai.'
+                });
                 setWaConfirmed(true);
                 setIsUnlocked(true);
                 sessionStorage.setItem('orvian_wa_confirmed', 'true');

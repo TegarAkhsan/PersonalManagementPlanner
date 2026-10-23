@@ -20,7 +20,8 @@ export default function HabitsView() {
     archiveHabit,
     deleteHabit,
     setCreateModalType,
-    theme
+    theme,
+    showConfirm
   } = useStorage();
 
   const isLight = theme === 'light';
@@ -172,8 +173,17 @@ export default function HabitsView() {
                         <Archive size={14} />
                       </button>
                       <button
-                        onClick={() => deleteHabit(habit.id)}
-                        className={`p-1 rounded ${
+                        onClick={() => {
+                          showConfirm({
+                            type: 'danger',
+                            title: 'Hapus Habit',
+                            message: `Apakah Anda yakin ingin menghapus habit "${habit.name || 'ini'}"?`,
+                            confirmText: 'Ya, Hapus',
+                            cancelText: 'Batal',
+                            onConfirm: () => deleteHabit(habit.id)
+                          });
+                        }}
+                        className={`p-1 rounded cursor-pointer ${
                           isLight ? 'text-slate-400 hover:text-rose-600 hover:bg-slate-100' : 'text-zinc-500 hover:text-rose-400 hover:bg-[#202026]'
                         }`}
                         title="Delete habit"
@@ -370,7 +380,7 @@ export default function HabitsView() {
 }
 
 function EventsViewTab() {
-  const { events, deleteEvent, theme } = useStorage();
+  const { events, deleteEvent, theme, showConfirm } = useStorage();
   const isLight = theme === 'light';
 
   return (
@@ -395,8 +405,18 @@ function EventsViewTab() {
                   {evt.category || 'Event'}
                 </span>
                 <button
-                  onClick={() => deleteEvent(evt.id)}
-                  className={`transition-colors ${isLight ? 'text-slate-400 hover:text-rose-600' : 'text-zinc-500 hover:text-rose-400'}`}
+                  onClick={() => {
+                    showConfirm({
+                      type: 'danger',
+                      title: 'Hapus Agenda',
+                      message: `Apakah Anda yakin ingin menghapus agenda "${evt.title || 'ini'}"?`,
+                      confirmText: 'Ya, Hapus',
+                      cancelText: 'Batal',
+                      onConfirm: () => deleteEvent(evt.id)
+                    });
+                  }}
+                  className={`transition-colors cursor-pointer p-1 rounded hover:bg-rose-500/10 ${isLight ? 'text-slate-400 hover:text-rose-600' : 'text-zinc-500 hover:text-rose-400'}`}
+                  title="Hapus agenda"
                 >
                   <Trash2 size={13} />
                 </button>

@@ -33,7 +33,8 @@ export default function Sidebar() {
     supabaseConnected,
     user,
     isAdmin,
-    logoutUser
+    logoutUser,
+    showConfirm
   } = useStorage();
 
   const isLight = theme === 'light';
@@ -313,11 +314,18 @@ export default function Sidebar() {
             </div>
 
             <button
-              onClick={async () => {
-                if (window.confirm('Yakin ingin keluar dari akun Anda?')) {
-                  await logoutUser();
-                  setCurrentView('landing');
-                }
+              onClick={() => {
+                showConfirm({
+                  type: 'logout',
+                  title: 'Keluar dari Akun',
+                  message: 'Apakah Anda yakin ingin keluar dari akun Anda? Sesi Anda akan diakhiri.',
+                  confirmText: 'Ya, Keluar Akun',
+                  cancelText: 'Tetap di Sini',
+                  onConfirm: async () => {
+                    await logoutUser();
+                    setCurrentView('landing');
+                  }
+                });
               }}
               title="Keluar Akun (Log Out)"
               className={`p-1 rounded-md border transition-all cursor-pointer shrink-0 ${
@@ -362,11 +370,18 @@ export default function Sidebar() {
           )}
 
           <button
-            onClick={async () => {
-              if (window.confirm('Yakin ingin keluar dari akun Anda?')) {
-                await logoutUser();
-                setCurrentView('landing');
-              }
+            onClick={() => {
+              showConfirm({
+                type: 'logout',
+                title: 'Keluar dari Akun',
+                message: 'Apakah Anda yakin ingin keluar dari akun Anda? Sesi Anda akan diakhiri.',
+                confirmText: 'Ya, Keluar Akun',
+                cancelText: 'Tetap di Sini',
+                onConfirm: async () => {
+                  await logoutUser();
+                  setCurrentView('landing');
+                }
+              });
             }}
             title="Keluar Akun (Log Out)"
             className="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer"

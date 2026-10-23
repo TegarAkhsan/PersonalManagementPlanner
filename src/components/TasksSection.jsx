@@ -26,7 +26,8 @@ export default function TasksSection() {
     updateTask,
     deleteTask,
     setCreateModalType,
-    theme
+    theme,
+    showConfirm
   } = useStorage();
 
   const isLight = theme === 'light';
@@ -308,8 +309,17 @@ export default function TasksSection() {
                                     <Edit2 size={13} />
                                   </button>
                                   <button
-                                    onClick={() => deleteTask(task.id)}
-                                    className={`p-1 rounded ${
+                                    onClick={() => {
+                                      showConfirm({
+                                        type: 'danger',
+                                        title: 'Hapus Tugas',
+                                        message: `Apakah Anda yakin ingin menghapus tugas "${task.title || 'ini'}"? Tindakan ini tidak dapat dibatalkan.`,
+                                        confirmText: 'Ya, Hapus',
+                                        cancelText: 'Batal',
+                                        onConfirm: () => deleteTask(task.id)
+                                      });
+                                    }}
+                                    className={`p-1 rounded cursor-pointer ${
                                       isLight
                                         ? 'text-slate-400 hover:text-rose-600 hover:bg-slate-100'
                                         : 'text-zinc-500 hover:text-rose-400 hover:bg-[#25252E]'
@@ -488,8 +498,17 @@ export default function TasksSection() {
                               <Edit2 size={14} />
                             </button>
                             <button
-                              onClick={() => deleteTask(task.id)}
-                              className={`p-1 rounded ${
+                              onClick={() => {
+                                showConfirm({
+                                  type: 'danger',
+                                  title: 'Hapus Tugas',
+                                  message: `Apakah Anda yakin ingin menghapus tugas "${task.title || 'ini'}"? Tindakan ini tidak dapat dibatalkan.`,
+                                  confirmText: 'Ya, Hapus',
+                                  cancelText: 'Batal',
+                                  onConfirm: () => deleteTask(task.id)
+                                });
+                              }}
+                              className={`p-1 rounded cursor-pointer ${
                                 isLight ? 'text-slate-400 hover:text-rose-600 hover:bg-slate-100' : 'text-zinc-500 hover:text-rose-400 hover:bg-[#25252E]'
                               }`}
                               title="Delete task"

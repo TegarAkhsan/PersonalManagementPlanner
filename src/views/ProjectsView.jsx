@@ -17,7 +17,7 @@ import {
 import { useStorage } from '../context/StorageContext';
 
 export default function ProjectsView() {
-  const { projects, tasks, deleteProject, updateProject, setCreateModalType, theme, currentPlan, setCurrentView } = useStorage();
+  const { projects, tasks, deleteProject, updateProject, setCreateModalType, theme, currentPlan, setCurrentView, showConfirm } = useStorage();
   const isLight = theme === 'light';
   const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id || null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
@@ -285,9 +285,17 @@ export default function ProjectsView() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    deleteProject(proj.id);
+                    showConfirm({
+                      type: 'danger',
+                      title: 'Hapus Proyek',
+                      message: `Apakah Anda yakin ingin menghapus proyek "${proj.name}"? Seluruh tugas yang terafiliasi dengan proyek ini akan terpengaruh.`,
+                      confirmText: 'Ya, Hapus Proyek',
+                      cancelText: 'Batal',
+                      onConfirm: () => deleteProject(proj.id)
+                    });
                   }}
-                  className={`p-1 transition-colors ${isLight ? 'text-slate-400 hover:text-rose-600' : 'text-zinc-500 hover:text-rose-400'}`}
+                  className={`p-1 transition-colors cursor-pointer rounded hover:bg-rose-500/10 ${isLight ? 'text-slate-400 hover:text-rose-600' : 'text-zinc-500 hover:text-rose-400'}`}
+                  title="Hapus proyek"
                 >
                   <Trash2 size={14} />
                 </button>
