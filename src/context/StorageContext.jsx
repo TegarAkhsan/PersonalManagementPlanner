@@ -219,6 +219,9 @@ export function StorageProvider({ children }) {
     }
   }, [subscriptionInfo]);
 
+  // Daftar email master admin resmi
+  const ADMIN_EMAILS = ['tegarrigger@gmail.com', 'tegarakhsan@gmail.com'];
+
   const checkIsAdmin = (u) => {
     if (!u) return false;
     const email = (u.email || '').toLowerCase().trim();
